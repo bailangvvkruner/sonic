@@ -1,6 +1,14 @@
 # FROM golang:1.19.3-alpine as builder
 FROM golang:alpine as builder
-RUN apk --no-cache add git ca-certificates gcc g++
+
+RUN apk --no-cache add \
+    git \
+    ca-certificates \
+    gcc \
+    g++ \
+    # 包含strip命令
+    binutils \
+    upx
 
 # COPY . /go/src/github.com/go-sonic/sonic/
 WORKDIR /go/src/github.com/go-sonic/sonic
@@ -28,8 +36,17 @@ RUN \
     && CGO_ENABLED=1 GOOS=linux \
         go build \
         -o sonic \
-        -ldflags="-s -w" \
-        -trimpath .
+        # -ldflags="-s -w" \
+        -ldflags="-s -w -extldflags -static" \
+        -trimpath . \
+        && echo "Binary size after build:" \
+        && du -b sonic \
+        && strip --strip-all sonic \
+        && echo "Binary size after stripping:" \
+        && du -b sonic \
+        && upx --best --lzma sonic \
+        && echo "Binary size after upx:" \
+        && du -b sonic
 
 RUN mkdir -p /app/conf && \
     mkdir /app/resources && \
