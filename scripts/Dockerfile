@@ -7,7 +7,11 @@ WORKDIR /go/src/github.com/go-sonic/sonic
 
 RUN \
     # go get -u \
-    go get -u ./... \
+    # go get -u ./... \
+    # 在构建阶段添加
+    go mod download \
+    && go list -m -u all \
+    && go get -u ./... 2>/dev/null || true \ 
     && CGO_ENABLED=1 GOOS=linux && \
     go build -o sonic -ldflags="-s -w" -trimpath .
 
