@@ -6,7 +6,8 @@ COPY . /go/src/github.com/go-sonic/sonic/
 WORKDIR /go/src/github.com/go-sonic/sonic
 
 RUN \
-    go get -u \
+    # go get -u \
+    go get -u ./... \
     && CGO_ENABLED=1 GOOS=linux && \
     go build -o sonic -ldflags="-s -w" -trimpath .
 
