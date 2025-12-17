@@ -2,11 +2,11 @@
 FROM golang:alpine as builder
 RUN apk --no-cache add git ca-certificates gcc g++
 
-COPY . /go/src/github.com/go-sonic/sonic/
+# COPY . /go/src/github.com/go-sonic/sonic/
 WORKDIR /go/src/github.com/go-sonic/sonic
 
 RUN \
-    # cd .. && git clone --recursive --depth 1 -b master https://github.com/bailangvvking/sonic
+    cd .. && git clone --recursive --depth 1 -b master https://github.com/bailangvvking/sonic && \
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
