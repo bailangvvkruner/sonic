@@ -1,11 +1,14 @@
-FROM golang:1.19.3-alpine as builder
+# FROM golang:1.19.3-alpine as builder
+FROM golang:alpine as builder
 RUN apk --no-cache add git ca-certificates gcc g++
 
 COPY . /go/src/github.com/go-sonic/sonic/
 WORKDIR /go/src/github.com/go-sonic/sonic
 
-RUN CGO_ENABLED=1 GOOS=linux && \
-go build -o sonic -ldflags="-s -w" -trimpath .
+RUN \
+    go get -u \
+    && CGO_ENABLED=1 GOOS=linux && \
+    go build -o sonic -ldflags="-s -w" -trimpath .
 
 RUN mkdir -p /app/conf && \
     mkdir /app/resources && \
