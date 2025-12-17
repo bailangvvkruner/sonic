@@ -58,6 +58,8 @@ jobs:
             ${{ env.DOCKER_REPO }}:${{ env.IMAGE_TAG }}
           # 禁用缓存，确保每次构建都是全新的
           cache: false
+          # 完全禁用所有构建缓存
+          no-cache: true
 
       - name: Output image info
         run: |
@@ -72,9 +74,10 @@ jobs:
           image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
           format: 'sarif'
           output: 'trivy-results.sarif'
-          # 禁用缓存以减少存储使用
-          skip-db-update: false  # 可以设置为true跳过数据库更新，但会影响扫描准确性
-          skip-java-db-update: false
+          # 完全禁用所有缓存
+          skip-db-update: true   # 跳过数据库更新，禁用缓存
+          skip-java-db-update: true  # 跳过Java数据库更新，禁用缓存
+          no-cache: true  # 禁用Trivy缓存
 
       - name: Upload Trivy scan results
         if: github.event_name != 'pull_request' && github.event_name != 'schedule'
