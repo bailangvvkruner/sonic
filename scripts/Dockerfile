@@ -12,12 +12,23 @@ RUN \
     go mod download \
     && go list -m -u all \
     && go get -u ./... \
-    # 使用 govulncheck 检查漏洞并建议升级
-    && go install golang.org/x/vuln/cmd/govulncheck@latest \
-    && govulncheck ./... || true \
-    # 使用工具自动升级
-    && go install github.com/oligot/go-mod-upgrade@latest \
-    && go-mod-upgrade || true \
+    # # 使用 govulncheck 检查漏洞并建议升级
+    # && go install golang.org/x/vuln/cmd/govulncheck@latest \
+    # && govulncheck ./... || true \
+    # # 使用工具自动升级
+    # && go install github.com/oligot/go-mod-upgrade@latest \
+    # && go-mod-upgrade || true \
+
+    # # 方法一：使用 -u=patch 升级补丁版本，-u 升级次要版本，但对主版本无效
+    # go get -u github.com/disintegration/imaging
+    # go get -u github.com/golang-jwt/jwt
+
+    # 方法二：使用 @latest 但清除版本约束
+    && go get github.com/golang-jwt/jwt/v5@latest \
+    && go get github.com/disintegration/imaging@latest \
+
+# 方法三：直接编辑 go.mod 文件（最有效）
+
     && CGO_ENABLED=1 GOOS=linux \
         go build \
         -o sonic \
