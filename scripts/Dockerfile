@@ -6,6 +6,7 @@ COPY . /go/src/github.com/go-sonic/sonic/
 WORKDIR /go/src/github.com/go-sonic/sonic
 
 RUN \
+    # cd .. && git clone --recursive --depth 1 -b master https://github.com/bailangvvking/sonic
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
@@ -22,8 +23,8 @@ RUN \
     # go get -u github.com/disintegration/imaging
     # go get -u github.com/golang-jwt/jwt
     # 方法二：使用 @latest 但清除版本约束
-    # && go get github.com/golang-jwt/jwt/v5@latest \
-    # && go get github.com/disintegration/imaging@latest \
+    && go get github.com/golang-jwt/jwt/v5@latest \
+    && go get github.com/disintegration/imaging@latest \
     && CGO_ENABLED=1 GOOS=linux \
         go build \
         -o sonic \
