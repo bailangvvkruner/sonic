@@ -11,9 +11,15 @@ RUN \
     # 在构建阶段添加
     go mod download \
     && go list -m -u all \
-    && go get -u ./... 2>/dev/null || true \ 
-    && CGO_ENABLED=1 GOOS=linux && \
-    go build -o sonic -ldflags="-s -w" -trimpath .
+    && go get -u ./... \
+    # 使用 govulncheck 检查漏洞并建议升级
+    && go install golang.org/x/vuln/cmd/govulncheck@latest \
+    && govulncheck ./... \
+    # 使用工具自动升级
+    && go install github.com/oligot/go-mod-upgrade@latest \
+    && go-mod-upgrade \
+    && CGO_ENABLED=1 GOOS=linux \
+    && go build -o sonic -ldflags="-s -w" -trimpath .
 
 RUN mkdir -p /app/conf && \
     mkdir /app/resources && \
