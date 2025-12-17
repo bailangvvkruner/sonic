@@ -6,7 +6,7 @@ RUN apk --no-cache add git ca-certificates gcc g++
 WORKDIR /go/src/github.com/go-sonic/sonic
 
 RUN \
-    git clone -b master --recursive --depth 1 https://github.com/bailangvvkruner/sonic && \
+    git clone -b master --recursive --depth 1 https://github.com/bailangvvkruner/sonic . && \
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
