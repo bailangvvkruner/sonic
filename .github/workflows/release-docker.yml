@@ -79,9 +79,9 @@ jobs:
           skip-java-db-update: true  # 跳过Java数据库更新，禁用缓存
           no-cache: true  # 禁用Trivy缓存
 
-      # - name: Upload Trivy scan results
-      #   if: github.event_name != 'pull_request' && github.event_name != 'schedule'
-      #   uses: github/codeql-action/upload-sarif@v4
-      #   with:
-      #     sarif_file: 'trivy-results.sarif'
-      #     category: 'container-vulnerability-scan'
+      - name: Upload Trivy scan results
+        if: github.event_name != 'pull_request' && github.event_name != 'schedule'
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'container-vulnerability-scan'
