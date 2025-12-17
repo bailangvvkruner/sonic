@@ -1,6 +1,6 @@
 module github.com/go-sonic/sonic
 
-go 1.26
+go 1.25
 
 require (
 	github.com/Masterminds/sprig/v3 v3.2.3

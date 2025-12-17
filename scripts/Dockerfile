@@ -24,9 +24,6 @@ RUN \
     # 方法二：使用 @latest 但清除版本约束
     # && go get github.com/golang-jwt/jwt/v5@latest \
     # && go get github.com/disintegration/imaging@latest \
-
-# 方法三：直接编辑 go.mod 文件（最有效）
-
     && CGO_ENABLED=1 GOOS=linux \
         go build \
         -o sonic \
