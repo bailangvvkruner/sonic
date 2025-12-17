@@ -19,7 +19,10 @@ RUN \
     && go install github.com/oligot/go-mod-upgrade@latest \
     && go-mod-upgrade \
     && CGO_ENABLED=1 GOOS=linux \
-    && go build -o sonic -ldflags="-s -w" -trimpath .
+        go build \
+        -o sonic \
+        -ldflags="-s -w" \
+        -trimpath .
 
 RUN mkdir -p /app/conf && \
     mkdir /app/resources && \
