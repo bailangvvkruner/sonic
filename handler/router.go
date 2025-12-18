@@ -425,4 +425,3 @@ func (s *Server) registerDynamicRouters(contentRouter fiber.Router) error {
 	contentRouter.Get("admin_preview/"+sheetPath+"/:slug", s.wrapHTMLHandler(s.ContentSheetHandler.AdminSheetBySlug))
 	return nil
 }
-}
