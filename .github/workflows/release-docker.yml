@@ -15,11 +15,15 @@ permissions:
   packages: write  # 推送镜像到GitHub Container Registry所需权限
   security-events: write
   actions: read
+  # 为安全扫描添加额外权限
+  id-token: write  # OIDC令牌，用于容器注册表认证
 
 env:
   DOCKER_REPO: bailangvvking/sonic
   IMAGE_NAME: sonic
   IMAGE_TAG: cache
+  # 设置扫描环境变量
+  SCAN_CACHE_DIR: /tmp/trivy-cache
 
 jobs:
   build-and-push:
