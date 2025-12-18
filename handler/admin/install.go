@@ -9,6 +9,7 @@ import (
 	"github.com/go-sonic/sonic/handler/trans"
 	"github.com/go-sonic/sonic/model/param"
 	"github.com/go-sonic/sonic/service"
+	"github.com/go-sonic/sonic/util"
 	"github.com/go-sonic/sonic/util/xerr"
 )
 

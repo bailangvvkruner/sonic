@@ -62,7 +62,7 @@ func (s *SheetCommentHandler) ListSheetComment(ctx *fiber.Ctx) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	commentDTOs, err := s.ConvertToWithSheet(ctx, comments)
+	commentDTOs, err := s.ConvertToWithSheet(ctx.UserContext(), comments)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *fiber.Ctx) (interface{
 	if err != nil {
 		return nil, err
 	}
-	return s.ConvertToWithSheet(ctx, comments)
+	return s.ConvertToWithSheet(ctx.UserContext(), comments)
 }
 
 func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *fiber.Ctx) (interface{}, error) {
@@ -151,9 +151,10 @@ func (s *SheetCommentHandler) CreateSheetComment(ctx *fiber.Ctx) (interface{}, e
 		if errors.As(err, &e) {
 			return nil, xerr.WithStatus(e, xerr.StatusBadRequest).WithMsg(trans.Translate(e))
 		}
+if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	user, err := impl.MustGetAuthorizedUser(ctx)
+	user, err := impl.MustGetAuthorizedUser(ctx.UserContext())
 	if err != nil || user == nil {
 		return nil, err
 	}
@@ -234,13 +235,13 @@ func (s *SheetCommentHandler) ConvertToWithSheet(ctx context.Context, comments [
 	for _, comment := range comments {
 		postIDs = append(postIDs, comment.PostID)
 	}
-	posts, err := s.SheetService.GetByPostIDs(ctx.UserContext(), postIDs)
+	posts, err := s.SheetService.GetByPostIDs(ctx, postIDs)
 	if err != nil {
 		return nil, err
 	}
 	result := make([]*vo.SheetCommentWithSheet, 0, len(comments))
 	for _, comment := range comments {
-		commentDTO, err := s.SheetCommentAssembler.ConvertToDTO(ctx.UserContext(), comment)
+		commentDTO, err := s.SheetCommentAssembler.ConvertToDTO(ctx, comment)
 		if err != nil {
 			return nil, err
 		}
@@ -250,7 +251,7 @@ func (s *SheetCommentHandler) ConvertToWithSheet(ctx context.Context, comments [
 		result = append(result, commentWithSheet)
 		post, ok := posts[comment.PostID]
 		if ok {
-			commentWithSheet.PostMinimal, err = s.SheetAssembler.ConvertToMinimalDTO(ctx.UserContext(), post)
+			commentWithSheet.PostMinimal, err = s.SheetAssembler.ConvertToMinimalDTO(ctx, post)
 			if err != nil {
 				return nil, err
 			}

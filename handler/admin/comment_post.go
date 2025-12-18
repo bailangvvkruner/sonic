@@ -144,10 +144,10 @@ func (p *PostCommentHandler) CreatePostComment(ctx *fiber.Ctx) (interface{}, err
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
 			return nil, xerr.WithStatus(e, xerr.StatusBadRequest).WithMsg(trans.Translate(e))
-		}
+		}if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	user, err := impl.MustGetAuthorizedUser(ctx)
+	user, err := impl.MustGetAuthorizedUser(ctx.UserContext())
 	if err != nil || user == nil {
 		return nil, err
 	}

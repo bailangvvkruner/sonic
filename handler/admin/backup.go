@@ -221,7 +221,7 @@ func wrapHandler(handler wrapperHandler) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		data, err := handler(ctx)
 		if err != nil {
-			log.CtxErrorf(ctx, "err=%+v", err)
+			log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 			status := xerr.GetHTTPStatus(err)
 			return ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 		}
