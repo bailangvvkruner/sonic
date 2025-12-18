@@ -272,19 +272,17 @@ func (p *PostHandler) DeletePostBatch(ctx *fiber.Ctx) (interface{}, error) {
 	return nil, p.PostService.DeleteBatch(ctx.UserContext(), postIDs)
 }
 
-func (p *PostHandler) PreviewPost(ctx *fiber.Ctx) {
+func (p *PostHandler) PreviewPost(ctx *fiber.Ctx) error {
 	postID, err := util.ParamInt32(ctx, "postID")
 	if err != nil {
 		ctx.Status(http.StatusBadRequest)
-		_ = ctx.Error(err)
-		return
+		return err
 	}
 	previewPath, err := p.PostService.Preview(ctx.UserContext(), postID)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		_ = ctx.Error(err)
-		return
+		return err
 	}
-	ctx.Status(http.StatusOK).SendString(previewPath)
+	return ctx.Status(http.StatusOK).SendString(previewPath)
 }
 

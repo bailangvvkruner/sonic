@@ -28,7 +28,7 @@ func NewUserHandler(userService service.UserService, twoFactorMFAService service
 }
 
 func (u *UserHandler) GetCurrentUserProfile(ctx *fiber.Ctx) (interface{}, error) {
-	user, ok := impl.GetAuthorizedUser(ctx)
+	user, ok := impl.GetAuthorizedUser(ctx.UserContext())
 	if !ok {
 		return nil, xerr.Forbidden.New("authorized user nil").WithStatus(xerr.StatusForbidden)
 	}
@@ -85,7 +85,7 @@ func (u *UserHandler) GenerateMFAQRCode(ctx *fiber.Ctx) (interface{}, error) {
 	if param.MFAType == nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	user, ok := impl.GetAuthorizedUser(ctx)
+	user, ok := impl.GetAuthorizedUser(ctx.UserContext())
 	if !ok || user == nil {
 		return nil, xerr.Forbidden.New("").WithMsg("unauthorized").WithStatus(xerr.StatusForbidden)
 	}

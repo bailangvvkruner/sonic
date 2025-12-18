@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -97,6 +98,7 @@ func (a *AuthMiddleware) GetWrapHandler() fiber.Handler {
 			})
 		}
 		ctx.Locals(consts.AuthorizedUser, user)
+		ctx.SetUserContext(context.WithValue(ctx.UserContext(), consts.AuthorizedUser, user))
 		return ctx.Next()
 	}
 }

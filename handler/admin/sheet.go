@@ -155,20 +155,18 @@ func (s *SheetHandler) DeleteSheet(ctx *fiber.Ctx) (interface{}, error) {
 	return nil, s.SheetService.Delete(ctx.UserContext(), sheetID)
 }
 
-func (s *SheetHandler) PreviewSheet(ctx *fiber.Ctx) {
+func (s *SheetHandler) PreviewSheet(ctx *fiber.Ctx) error {
 	sheetID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		_ = ctx.Error(err)
-		return
+		return err
 	}
 
 	previewPath, err := s.SheetService.Preview(ctx.UserContext(), sheetID)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		_ = ctx.Error(err)
-		return
+		return err
 	}
-	ctx.Status(http.StatusOK).SendString(previewPath)
+	return ctx.Status(http.StatusOK).SendString(previewPath)
 }
 

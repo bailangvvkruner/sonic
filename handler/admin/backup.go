@@ -75,35 +75,32 @@ func (b *BackupHandler) ListToBackupItems(ctx *fiber.Ctx) (interface{}, error) {
 	return b.BackupService.ListToBackupItems(ctx.UserContext())
 }
 
-func (b *BackupHandler) HandleWorkDir(ctx *fiber.Ctx) {
+func (b *BackupHandler) HandleWorkDir(ctx *fiber.Ctx) error {
 	path := ctx.Path()
 	if path == "/api/admin/backups/work-dir/fetch" {
-		wrapHandler(b.GetWorkDirBackup)(ctx)
-		return
+		return wrapHandler(b.GetWorkDirBackup)(ctx)
 	}
 	if path == "/api/admin/backups/work-dir/options" || path == "/api/admin/backups/work-dir/options/" {
-		wrapHandler(b.ListToBackupItems)(ctx)
-		return
+		return wrapHandler(b.ListToBackupItems)(ctx)
 	}
-	b.DownloadBackups(ctx)
+	return b.DownloadBackups(ctx)
 }
 
-func (b *BackupHandler) DownloadBackups(ctx *fiber.Ctx) {
+func (b *BackupHandler) DownloadBackups(ctx *fiber.Ctx) error {
 	filename := ctx.Params("path")
 	if filename == "" {
-		ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
+		return ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
 			Status:  http.StatusBadRequest,
 			Message: "Filename parameter does not exist",
 		})
-		return
 	}
 	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.BackupDir, filename)
 	if err != nil {
 		log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
-		ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
+		return ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
-	ctx.SendFile(filePath)
+	return ctx.SendFile(filePath)
 }
 
 func (b *BackupHandler) DeleteBackups(ctx *fiber.Ctx) (interface{}, error) {
@@ -130,24 +127,22 @@ func (b *BackupHandler) ExportData(ctx *fiber.Ctx) (interface{}, error) {
 	return b.BackupService.ExportData(ctx.UserContext())
 }
 
-func (b *BackupHandler) HandleData(ctx *fiber.Ctx) {
+func (b *BackupHandler) HandleData(ctx *fiber.Ctx) error {
 	path := ctx.Path()
 	if path == "/api/admin/backups/data/fetch" {
-		wrapHandler(b.GetDataBackup)(ctx)
-		return
+		return wrapHandler(b.GetDataBackup)(ctx)
 	}
 	if path == "/api/admin/backups/data" || path == "/api/admin/backups/data/" {
-		wrapHandler(b.ListExportData)(ctx)
-		return
+		return wrapHandler(b.ListExportData)(ctx)
 	}
-	b.DownloadData(ctx)
+	return b.DownloadData(ctx)
 }
 
 func (b *BackupHandler) ListExportData(ctx *fiber.Ctx) (interface{}, error) {
 	return b.BackupService.ListFiles(ctx.UserContext(), config.DataExportDir, service.JSONData)
 }
 
-func (b *BackupHandler) DownloadData(ctx *fiber.Ctx) {
+func (b *BackupHandler) DownloadData(ctx *fiber.Ctx) error {
 	filename := ctx.Params("path")
 	if filename == "" {
 		ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
@@ -159,9 +154,9 @@ func (b *BackupHandler) DownloadData(ctx *fiber.Ctx) {
 	if err != nil {
 		log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
-		ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
+		return ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
-	ctx.SendFile(filePath)
+	return ctx.SendFile(filePath)
 }
 
 func (b *BackupHandler) DeleteDataFile(ctx *fiber.Ctx) (interface{}, error) {
@@ -197,22 +192,21 @@ func (b *BackupHandler) DeleteMarkdowns(ctx *fiber.Ctx) (interface{}, error) {
 	return nil, b.BackupService.DeleteFile(ctx.UserContext(), config.BackupMarkdownDir, filename)
 }
 
-func (b *BackupHandler) DownloadMarkdown(ctx *fiber.Ctx) {
+func (b *BackupHandler) DownloadMarkdown(ctx *fiber.Ctx) error {
 	filename := ctx.Params("filename")
 	if filename == "" {
-		ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
+		return ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
 			Status:  http.StatusBadRequest,
 			Message: "Filename parameter does not exist",
 		})
-		return
 	}
 	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.BackupMarkdownDir, filename)
 	if err != nil {
 		log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
-		ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
+		return ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
-	ctx.SendFile(filePath)
+	return ctx.SendFile(filePath)
 }
 
 type wrapperHandler func(ctx *fiber.Ctx) (interface{}, error)
