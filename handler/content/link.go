@@ -20,5 +20,5 @@ func NewLinkHandler(
 }
 
 func (t *LinkHandler) Link(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return t.LinkModel.Links(ctx, model)
+	return t.LinkModel.Links(ctx.UserContext(), model)
 }

@@ -76,7 +76,7 @@ func (b *BackupHandler) ListToBackupItems(ctx *fiber.Ctx) (interface{}, error) {
 }
 
 func (b *BackupHandler) HandleWorkDir(ctx *fiber.Ctx) {
-	path := ctx.Request.URL.Path
+	path := ctx.Path()
 	if path == "/api/admin/backups/work-dir/fetch" {
 		wrapHandler(b.GetWorkDirBackup)(ctx)
 		return
@@ -91,7 +91,7 @@ func (b *BackupHandler) HandleWorkDir(ctx *fiber.Ctx) {
 func (b *BackupHandler) DownloadBackups(ctx *fiber.Ctx) {
 	filename := ctx.Params("path")
 	if filename == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, &dto.BaseDTO{
+		ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
 			Status:  http.StatusBadRequest,
 			Message: "Filename parameter does not exist",
 		})
@@ -99,9 +99,9 @@ func (b *BackupHandler) DownloadBackups(ctx *fiber.Ctx) {
 	}
 	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.BackupDir, filename)
 	if err != nil {
-		log.CtxErrorf(ctx, "err=%+v", err)
+		log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
-		ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
+		ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
 	ctx.SendFile(filePath)
 }
@@ -131,7 +131,7 @@ func (b *BackupHandler) ExportData(ctx *fiber.Ctx) (interface{}, error) {
 }
 
 func (b *BackupHandler) HandleData(ctx *fiber.Ctx) {
-	path := ctx.Request.URL.Path
+	path := ctx.Path()
 	if path == "/api/admin/backups/data/fetch" {
 		wrapHandler(b.GetDataBackup)(ctx)
 		return
@@ -150,23 +150,23 @@ func (b *BackupHandler) ListExportData(ctx *fiber.Ctx) (interface{}, error) {
 func (b *BackupHandler) DownloadData(ctx *fiber.Ctx) {
 	filename := ctx.Params("path")
 	if filename == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, &dto.BaseDTO{
+		ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
 			Status:  http.StatusBadRequest,
 			Message: "Filename parameter does not exist",
 		})
 	}
 	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.DataExportDir, filename)
 	if err != nil {
-		log.CtxErrorf(ctx, "err=%+v", err)
+		log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
-		ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
+		ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
 	ctx.SendFile(filePath)
 }
 
 func (b *BackupHandler) DeleteDataFile(ctx *fiber.Ctx) (interface{}, error) {
-	filename, ok := ctx.GetQuery("filename")
-	if !ok || filename == "" {
+	filename := ctx.Query("filename")
+	if filename == "" {
 		return nil, xerr.BadParam.New("no filename param").WithStatus(xerr.StatusBadRequest).WithMsg("no filename param")
 	}
 	return nil, b.BackupService.DeleteFile(ctx.UserContext(), config.DataExportDir, filename)
@@ -200,7 +200,7 @@ func (b *BackupHandler) DeleteMarkdowns(ctx *fiber.Ctx) (interface{}, error) {
 func (b *BackupHandler) DownloadMarkdown(ctx *fiber.Ctx) {
 	filename := ctx.Params("filename")
 	if filename == "" {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, &dto.BaseDTO{
+		ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
 			Status:  http.StatusBadRequest,
 			Message: "Filename parameter does not exist",
 		})
@@ -208,9 +208,9 @@ func (b *BackupHandler) DownloadMarkdown(ctx *fiber.Ctx) {
 	}
 	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.BackupMarkdownDir, filename)
 	if err != nil {
-		log.CtxErrorf(ctx, "err=%+v", err)
+		log.CtxErrorf(ctx.UserContext(), "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
-		ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
+		ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
 	ctx.SendFile(filePath)
 }

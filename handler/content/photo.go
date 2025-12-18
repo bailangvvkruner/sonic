@@ -32,9 +32,9 @@ func (p *PhotoHandler) PhotosPage(ctx *fiber.Ctx, model template.Model) (string,
 	if err != nil {
 		return "", err
 	}
-	return p.PhotoModel.Photos(ctx, model, int(page-1))
+	return p.PhotoModel.Photos(ctx.UserContext(), model, int(page-1))
 }
 
 func (p *PhotoHandler) Phtotos(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return p.PhotoModel.Photos(ctx, model, 0)
+	return p.PhotoModel.Photos(ctx.UserContext(), model, 0)
 }

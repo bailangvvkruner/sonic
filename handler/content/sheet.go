@@ -42,7 +42,7 @@ func (s *SheetHandler) SheetBySlug(ctx *fiber.Ctx, model template.Model) (string
 		return "", err
 	}
 	token := ctx.Cookies("authentication")
-	return s.SheetModel.Content(ctx, sheet, token, model)
+	return s.SheetModel.Content(ctx.UserContext(), sheet, token, model)
 }
 
 func (s *SheetHandler) AdminSheetBySlug(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -68,5 +68,5 @@ func (s *SheetHandler) AdminSheetBySlug(ctx *fiber.Ctx, model template.Model) (s
 		return "", err
 	}
 
-	return s.SheetModel.AdminPreviewContent(ctx, sheet, model)
+	return s.SheetModel.AdminPreviewContent(ctx.UserContext(), sheet, model)
 }

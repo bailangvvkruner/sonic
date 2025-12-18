@@ -31,7 +31,7 @@ func NewTagHandler(
 }
 
 func (t *TagHandler) Tags(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return t.TagModel.Tags(ctx, model)
+	return t.TagModel.Tags(ctx.UserContext(), model)
 }
 
 func (t *TagHandler) TagPost(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -39,7 +39,7 @@ func (t *TagHandler) TagPost(ctx *fiber.Ctx, model template.Model) (string, erro
 	if err != nil {
 		return "", err
 	}
-	return t.TagModel.TagPosts(ctx, model, slug, 0)
+	return t.TagModel.TagPosts(ctx.UserContext(), model, slug, 0)
 }
 
 func (t *TagHandler) TagPostPage(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -51,5 +51,5 @@ func (t *TagHandler) TagPostPage(ctx *fiber.Ctx, model template.Model) (string, 
 	if err != nil {
 		return "", err
 	}
-	return t.TagModel.TagPosts(ctx, model, slug, int(page-1))
+	return t.TagModel.TagPosts(ctx.UserContext(), model, slug, int(page-1))
 }
