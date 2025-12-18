@@ -41,7 +41,7 @@ RUN set -eux \
     && cp /go/src/github.com/go-sonic/sonic/scripts/docker_init.sh /app/
 
 
-FROM alpine:latest as prod
+# FROM alpine:latest as prod
 FROM busybox:musl as prod
 
 COPY --from=builder /app/ /app/
