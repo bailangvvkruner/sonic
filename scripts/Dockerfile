@@ -18,8 +18,8 @@ RUN \
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
-    go mod download \
-    && go list -m -u all \
+    # go mod download \
+    # && go list -m -u all \
     && go get -u ./... \
     # # 使用 govulncheck 检查漏洞并建议升级
     # && go install golang.org/x/vuln/cmd/govulncheck@latest \
@@ -60,7 +60,7 @@ FROM alpine:latest as prod
 
 COPY --from=builder /app/ /app/
 
-RUN  apk add --no-cache tzdata \
+RUN apk add --no-cache tzdata  ca-certificates \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone
 
