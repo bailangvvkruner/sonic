@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/go-sonic/sonic/model/entity"
 	"github.com/go-sonic/sonic/model/property"
