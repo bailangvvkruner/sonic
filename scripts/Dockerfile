@@ -42,10 +42,13 @@ RUN set -eux \
 
 
 FROM alpine:latest as prod
+FROM busybox:musl as prod
 
 COPY --from=builder /app/ /app/
 
-RUN  apk add --no-cache tzdata \
+RUN set -eux \
+    && apk add --no-cache --no-scripts --virtual .build-deps \
+    tzdata \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone
 
