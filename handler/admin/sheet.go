@@ -127,7 +127,11 @@ func (s *SheetHandler) UpdateSheetStatus(ctx *fiber.Ctx) (interface{}, error) {
 	if status < consts.PostStatusPublished || status > consts.PostStatusIntimate {
 		return nil, xerr.WithStatus(nil, xerr.StatusBadRequest).WithMsg("status error")
 	}
-	return s.SheetService.UpdateStatus(ctx.UserContext(), sheetID, status)
+	sheet, err := s.SheetService.UpdateStatus(ctx.UserContext(), sheetID, status)
+	if err != nil {
+		return nil, err
+	}
+	return s.SheetAssembler.ConvertToDetailVO(ctx.UserContext(), sheet)
 }
 
 func (s *SheetHandler) UpdateSheetDraft(ctx *fiber.Ctx) (interface{}, error) {

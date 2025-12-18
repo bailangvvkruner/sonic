@@ -194,10 +194,9 @@ func (p *PostHandler) UpdatePost(ctx *fiber.Ctx) (interface{}, error) {
 }
 
 func (p *PostHandler) UpdatePostStatus(ctx *fiber.Ctx) (interface{}, error) {
-	postIDStr := ctx.Params("postID")
-	postID, err := strconv.ParseInt(postIDStr, 10, 32)
+	postID, err := util.ParamInt32(ctx, "postID")
 	if err != nil {
-		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
+		return nil, err
 	}
 	statusStr, err := util.ParamString(ctx, "status")
 	if err != nil {
@@ -210,7 +209,7 @@ func (p *PostHandler) UpdatePostStatus(ctx *fiber.Ctx) (interface{}, error) {
 	if int32(status) < int32(consts.PostStatusPublished) || int32(status) > int32(consts.PostStatusIntimate) {
 		return nil, xerr.WithStatus(nil, xerr.StatusBadRequest).WithMsg("status error")
 	}
-	post, err := p.PostService.UpdateStatus(ctx.UserContext(), int32(postID), status)
+	post, err := p.PostService.UpdateStatus(ctx.UserContext(), postID, status)
 	if err != nil {
 		return nil, err
 	}
