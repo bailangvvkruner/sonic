@@ -3,7 +3,7 @@ name: Sonic Docker Image CI/CD Pipeline
 on:
   workflow_dispatch:
   push:
-    branches: [ master ]
+    branches: [ cache ]
   # schedule:
   #   - cron: '0 3 * * *' # 每天构建一次（可选）
   # schedule:
@@ -19,13 +19,13 @@ permissions:
 env:
   DOCKER_REPO: bailangvvking/sonic
   IMAGE_NAME: sonic
-  IMAGE_TAG: latest
+  IMAGE_TAG: cache
 
 jobs:
   build-and-push:
     name: Build and Push Docker Image
     runs-on:
-      # ubuntu-latest
+      # ubuntu-cache
       - self-hosted
       - linux
       - x64
@@ -71,7 +71,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:latest
+          image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/${{ env.IMAGE_NAME }}:cache
           format: 'sarif'
           output: 'trivy-results.sarif'
           # 完全禁用所有缓存

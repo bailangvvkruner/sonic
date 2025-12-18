@@ -1,20 +1,20 @@
 # FROM golang:1.19.3-alpine as builder
 FROM golang:alpine as builder
 
-RUN apk --no-cache add \
+# COPY . /go/src/github.com/go-sonic/sonic/
+WORKDIR /go/src/github.com/go-sonic/sonic
+
+RUN set -eux \
+    && apk add --no-cache --no-scripts --virtual .build-deps \
     git \
     ca-certificates \
     gcc \
     g++ \
     # 包含strip命令
     binutils \
-    upx
-
-# COPY . /go/src/github.com/go-sonic/sonic/
-WORKDIR /go/src/github.com/go-sonic/sonic
-
-RUN \
-    git clone -b master --recursive --depth 1 https://github.com/bailangvvkruner/sonic . && \
+    upx \
+    \
+    && git clone -b master --recursive --depth 1 https://github.com/bailangvvkruner/sonic . && \
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
