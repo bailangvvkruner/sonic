@@ -27,7 +27,7 @@ func NewTagHandler(postTagService service.PostTagService, tagService service.Tag
 
 func (t *TagHandler) ListTags(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -59,7 +59,7 @@ func (t *TagHandler) GetTagByID(ctx *fiber.Ctx) (interface{}, error) {
 
 func (t *TagHandler) CreateTag(ctx *fiber.Ctx) (interface{}, error) {
 	tagParam := &param.Tag{}
-	err := ctx.ShouldBindJSON(tagParam)
+	err := ctx.BodyParser(tagParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -80,7 +80,7 @@ func (t *TagHandler) UpdateTag(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	tagParam := &param.Tag{}
-	err = ctx.ShouldBindJSON(tagParam)
+	err = ctx.BodyParser(tagParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {

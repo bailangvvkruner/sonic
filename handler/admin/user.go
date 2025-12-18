@@ -37,7 +37,7 @@ func (u *UserHandler) GetCurrentUserProfile(ctx *fiber.Ctx) (interface{}, error)
 
 func (u *UserHandler) UpdateUserProfile(ctx *fiber.Ctx) (interface{}, error) {
 	userParam := &param.User{}
-	err := ctx.ShouldBindJSON(userParam)
+	err := ctx.BodyParser(userParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -58,7 +58,7 @@ func (u *UserHandler) UpdatePassword(ctx *fiber.Ctx) (interface{}, error) {
 		NewPassword string `json:"newPassword" form:"newPassword" binding:"gte=1,lte=100"`
 	}
 	passwordParam := &Password{}
-	err := ctx.ShouldBindJSON(passwordParam)
+	err := ctx.BodyParser(passwordParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -74,7 +74,7 @@ func (u *UserHandler) GenerateMFAQRCode(ctx *fiber.Ctx) (interface{}, error) {
 		MFAType *consts.MFAType `json:"mfaType"`
 	}
 	param := &Param{}
-	err := ctx.ShouldBindJSON(param)
+	err := ctx.BodyParser(param)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -117,7 +117,7 @@ func (u *UserHandler) UpdateMFA(ctx *fiber.Ctx) (interface{}, error) {
 		AuthCode string          `json:"authcode" form:"authcode" binding:"gte=6,lte=6"`
 	}
 	mfaParam := &Param{}
-	err := ctx.ShouldBindJSON(mfaParam)
+	err := ctx.BodyParser(mfaParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {

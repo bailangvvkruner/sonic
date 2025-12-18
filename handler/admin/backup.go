@@ -217,17 +217,16 @@ func (b *BackupHandler) DownloadMarkdown(ctx *fiber.Ctx) {
 
 type wrapperHandler func(ctx *fiber.Ctx) (interface{}, error)
 
-func wrapHandler(handler wrapperHandler) gin.HandlerFunc {
-	return func(ctx *fiber.Ctx) {
+func wrapHandler(handler wrapperHandler) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		data, err := handler(ctx)
 		if err != nil {
 			log.CtxErrorf(ctx, "err=%+v", err)
 			status := xerr.GetHTTPStatus(err)
-			ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
-			return
+			return ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 		}
 
-		ctx.JSON(http.StatusOK, &dto.BaseDTO{
+		return ctx.Status(http.StatusOK).JSON(&dto.BaseDTO{
 			Status:  http.StatusOK,
 			Data:    data,
 			Message: "OK",

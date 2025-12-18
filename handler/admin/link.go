@@ -56,7 +56,7 @@ func (l *LinkHandler) GetLinkByID(ctx *fiber.Ctx) (interface{}, error) {
 
 func (l *LinkHandler) CreateLink(ctx *fiber.Ctx) (interface{}, error) {
 	linkParam := &param.Link{}
-	err := ctx.ShouldBindJSON(linkParam)
+	err := ctx.BodyParser(linkParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -77,7 +77,7 @@ func (l *LinkHandler) UpdateLink(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	linkParam := &param.Link{}
-	err = ctx.ShouldBindJSON(linkParam)
+	err = ctx.BodyParser(linkParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {

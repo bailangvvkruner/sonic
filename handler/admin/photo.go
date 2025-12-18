@@ -26,7 +26,7 @@ func NewPhotoHandler(photoService service.PhotoService) *PhotoHandler {
 
 func (p *PhotoHandler) ListPhoto(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -46,7 +46,7 @@ func (p *PhotoHandler) PagePhotos(ctx *fiber.Ctx) (interface{}, error) {
 		param.Sort
 	}
 	param := Param{}
-	err := ctx.ShouldBindQuery(&param)
+	err := ctx.QueryParser(&param)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -74,7 +74,7 @@ func (p *PhotoHandler) GetPhotoByID(ctx *fiber.Ctx) (interface{}, error) {
 
 func (p *PhotoHandler) CreatePhoto(ctx *fiber.Ctx) (interface{}, error) {
 	photoParam := &param.Photo{}
-	err := ctx.ShouldBindJSON(photoParam)
+	err := ctx.BodyParser(photoParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -112,7 +112,7 @@ func (p *PhotoHandler) UpdatePhoto(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	photoParam := &param.Photo{}
-	err = ctx.ShouldBindJSON(photoParam)
+	err = ctx.BodyParser(photoParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {

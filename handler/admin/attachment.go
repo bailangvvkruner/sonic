@@ -23,7 +23,7 @@ func NewAttachmentHandler(attachmentService service.AttachmentService) *Attachme
 
 func (a *AttachmentHandler) QueryAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	queryParam := &param.AttachmentQuery{}
-	err := ctx.ShouldBindWith(queryParam, binding.CustomFormBinding)
+	err := ctx.QueryParser(queryParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}
@@ -81,7 +81,7 @@ func (a *AttachmentHandler) UpdateAttachment(ctx *fiber.Ctx) (interface{}, error
 	}
 
 	updateParam := &param.AttachmentUpdate{}
-	err = ctx.ShouldBind(updateParam)
+	err = ctx.BodyParser(updateParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}

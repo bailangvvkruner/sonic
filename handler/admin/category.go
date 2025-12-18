@@ -41,7 +41,7 @@ func (c *CategoryHandler) ListAllCategory(ctx *fiber.Ctx) (interface{}, error) {
 		More *bool `json:"more" form:"more"`
 	}{}
 
-	err := ctx.ShouldBindQuery(&categoryQuery)
+	err := ctx.QueryParser(&categoryQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
@@ -60,7 +60,7 @@ func (c *CategoryHandler) ListAllCategory(ctx *fiber.Ctx) (interface{}, error) {
 
 func (c *CategoryHandler) ListAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	var sort param.Sort
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, err
 	}

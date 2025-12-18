@@ -32,9 +32,9 @@ func (p *JournalHandler) JournalsPage(ctx *fiber.Ctx, model template.Model) (str
 	if err != nil {
 		return "", err
 	}
-	return p.JournalModel.Journals(ctx, model, int(page-1))
+	return p.JournalModel.Journals(ctx.UserContext(), model, int(page-1))
 }
 
 func (p *JournalHandler) Journals(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return p.JournalModel.Journals(ctx, model, 0)
+	return p.JournalModel.Journals(ctx.UserContext(), model, 0)
 }

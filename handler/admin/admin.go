@@ -30,7 +30,7 @@ func NewAdminHandler(optionService service.OptionService, adminService service.A
 }
 
 func (a *AdminHandler) IsInstalled(ctx *fiber.Ctx) (interface{}, error) {
-	return a.OptionService.GetOrByDefaultWithErr(ctx.UserContext().UserContext(), property.IsInstalled, false)
+	return a.OptionService.GetOrByDefaultWithErr(ctx.UserContext(), property.IsInstalled, false)
 }
 
 func (a *AdminHandler) AuthPreCheck(ctx *fiber.Ctx) (interface{}, error) {
@@ -44,7 +44,7 @@ func (a *AdminHandler) AuthPreCheck(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, xerr.BadParam.Wrapf(err, "")
 	}
 
-	user, err := a.AdminService.Authenticate(ctx.UserContext().UserContext(), loginParam)
+	user, err := a.AdminService.Authenticate(ctx.UserContext(), loginParam)
 	if err != nil {
 		return nil, err
 	}
@@ -62,11 +62,11 @@ func (a *AdminHandler) Auth(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, xerr.BadParam.Wrapf(err, "").WithStatus(xerr.StatusBadRequest)
 	}
 
-	return a.AdminService.Auth(ctx.UserContext().UserContext(), loginParam)
+	return a.AdminService.Auth(ctx.UserContext(), loginParam)
 }
 
 func (a *AdminHandler) LogOut(ctx *fiber.Ctx) (interface{}, error) {
-	err := a.AdminService.ClearToken(ctx.UserContext().UserContext())
+	err := a.AdminService.ClearToken(ctx.UserContext())
 	return nil, err
 }
 
@@ -80,7 +80,7 @@ func (a *AdminHandler) SendResetCode(ctx *fiber.Ctx) (interface{}, error) {
 		}
 		return nil, xerr.BadParam.Wrapf(err, "").WithStatus(xerr.StatusBadRequest)
 	}
-	return nil, a.AdminService.SendResetPasswordCode(ctx.UserContext().UserContext(), resetPasswordParam)
+	return nil, a.AdminService.SendResetPasswordCode(ctx.UserContext(), resetPasswordParam)
 }
 
 func (a *AdminHandler) RefreshToken(ctx *fiber.Ctx) (interface{}, error) {
@@ -89,11 +89,11 @@ func (a *AdminHandler) RefreshToken(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, xerr.BadParam.New("refreshToken参数为空").WithStatus(xerr.StatusBadRequest).
 			WithMsg("refreshToken 参数不能为空")
 	}
-	return a.AdminService.RefreshToken(ctx.UserContext().UserContext(), refreshToken)
+	return a.AdminService.RefreshToken(ctx.UserContext(), refreshToken)
 }
 
 func (a *AdminHandler) GetEnvironments(ctx *fiber.Ctx) (interface{}, error) {
-	return a.AdminService.GetEnvironments(ctx.UserContext().UserContext()), nil
+	return a.AdminService.GetEnvironments(ctx.UserContext()), nil
 }
 
 func (a *AdminHandler) GetLogFiles(ctx *fiber.Ctx) (interface{}, error) {
@@ -101,6 +101,6 @@ func (a *AdminHandler) GetLogFiles(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return a.AdminService.GetLogFiles(ctx.UserContext().UserContext(), lines)
+	return a.AdminService.GetLogFiles(ctx.UserContext(), lines)
 }
 

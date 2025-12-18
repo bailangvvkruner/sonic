@@ -41,7 +41,7 @@ func NewCategoryHandler(
 }
 
 func (c *CategoryHandler) Categories(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return c.CategoryModel.ListCategories(ctx, model)
+	return c.CategoryModel.ListCategories(ctx.UserContext(), model)
 }
 
 func (c *CategoryHandler) CategoryDetail(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -50,7 +50,7 @@ func (c *CategoryHandler) CategoryDetail(ctx *fiber.Ctx, model template.Model) (
 		return "", err
 	}
 	token := ctx.Cookies("authentication")
-	return c.CategoryModel.CategoryDetail(ctx, model, slug, 0, token)
+	return c.CategoryModel.CategoryDetail(ctx.UserContext(), model, slug, 0, token)
 }
 
 func (c *CategoryHandler) CategoryDetailPage(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -64,5 +64,5 @@ func (c *CategoryHandler) CategoryDetailPage(ctx *fiber.Ctx, model template.Mode
 		return "", err
 	}
 	token := ctx.Cookies("authentication")
-	return c.CategoryModel.CategoryDetail(ctx, model, slug, int(page-1), token)
+	return c.CategoryModel.CategoryDetail(ctx.UserContext(), model, slug, int(page-1), token)
 }

@@ -25,7 +25,7 @@ func NewMenuHandler(menuService service.MenuService) *MenuHandler {
 
 func (m *MenuHandler) ListMenus(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -43,7 +43,7 @@ func (m *MenuHandler) ListMenus(ctx *fiber.Ctx) (interface{}, error) {
 
 func (m *MenuHandler) ListMenusAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -61,7 +61,7 @@ func (m *MenuHandler) ListMenusAsTree(ctx *fiber.Ctx) (interface{}, error) {
 
 func (m *MenuHandler) ListMenusAsTreeByTeam(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -97,7 +97,7 @@ func (m *MenuHandler) GetMenuByID(ctx *fiber.Ctx) (interface{}, error) {
 
 func (m *MenuHandler) CreateMenu(ctx *fiber.Ctx) (interface{}, error) {
 	menuParam := &param.Menu{}
-	err := ctx.ShouldBindJSON(menuParam)
+	err := ctx.BodyParser(menuParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -135,7 +135,7 @@ func (m *MenuHandler) UpdateMenu(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	menuParam := &param.Menu{}
-	err = ctx.ShouldBindJSON(menuParam)
+	err = ctx.BodyParser(menuParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {

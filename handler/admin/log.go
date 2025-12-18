@@ -42,7 +42,7 @@ func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 		*param.Sort
 	}
 	var logParam LogParam
-	err := ctx.ShouldBindQuery(&logParam)
+	err := ctx.QueryParser(&logParam)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "parameter error").WithStatus(xerr.StatusBadRequest)
 	}

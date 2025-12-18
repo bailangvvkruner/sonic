@@ -19,7 +19,7 @@ func NewIndexHandler(postModel *model.PostModel) *IndexHandler {
 }
 
 func (h *IndexHandler) Index(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return h.PostModel.List(ctx, 0, model)
+	return h.PostModel.List(ctx.UserContext(), 0, model)
 }
 
 func (h *IndexHandler) IndexPage(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -27,5 +27,5 @@ func (h *IndexHandler) IndexPage(ctx *fiber.Ctx, model template.Model) (string, 
 	if err != nil {
 		return "", err
 	}
-	return h.PostModel.List(ctx, int(page)-1, model)
+	return h.PostModel.List(ctx.UserContext(), int(page)-1, model)
 }

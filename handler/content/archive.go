@@ -47,7 +47,7 @@ func NewArchiveHandler(
 }
 
 func (a *ArchiveHandler) Archives(ctx *fiber.Ctx, model template.Model) (string, error) {
-	return a.PostModel.Archives(ctx, 0, model)
+	return a.PostModel.Archives(ctx.UserContext(), 0, model)
 }
 
 func (a *ArchiveHandler) ArchivesPage(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -55,7 +55,7 @@ func (a *ArchiveHandler) ArchivesPage(ctx *fiber.Ctx, model template.Model) (str
 	if err != nil {
 		return "", err
 	}
-	return a.PostModel.Archives(ctx, int(page-1), model)
+	return a.PostModel.Archives(ctx.UserContext(), int(page-1), model)
 }
 
 func (a *ArchiveHandler) ArchivesBySlug(ctx *fiber.Ctx, model template.Model) (string, error) {
@@ -85,7 +85,7 @@ func (a *ArchiveHandler) ArchivesBySlug(ctx *fiber.Ctx, model template.Model) (s
 		}
 	}
 	token := ctx.Cookies("authentication")
-	return a.PostModel.Content(ctx, post, token, model)
+	return a.PostModel.Content(ctx.UserContext(), post, token, model)
 }
 
 // AdminArchivesBySlug It can only be used in the console  to preview articles
@@ -126,5 +126,5 @@ func (a *ArchiveHandler) AdminArchivesBySlug(ctx *fiber.Ctx, model template.Mode
 			return "", err
 		}
 	}
-	return a.PostModel.AdminPreview(ctx, post, model)
+	return a.PostModel.AdminPreview(ctx.UserContext(), post, model)
 }

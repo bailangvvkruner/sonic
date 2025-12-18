@@ -20,7 +20,7 @@ func NewEmailHandler(emailService service.EmailService) *EmailHandler {
 
 func (e *EmailHandler) Test(ctx *fiber.Ctx) (interface{}, error) {
 	p := &param.TestEmail{}
-	if err := ctx.ShouldBindJSON(p); err != nil {
+	if err := ctx.BodyParser(p); err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}
 	return nil, e.EmailService.SendTextEmail(ctx.UserContext(), p.To, p.Subject, p.Content)

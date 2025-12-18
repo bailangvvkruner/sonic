@@ -81,7 +81,7 @@ func (t *ThemeHandler) GetThemeFileContentByID(ctx *fiber.Ctx) (interface{}, err
 
 func (t *ThemeHandler) UpdateThemeFile(ctx *fiber.Ctx) (interface{}, error) {
 	themeParam := &param.ThemeContent{}
-	err := ctx.ShouldBindJSON(themeParam)
+	err := ctx.BodyParser(themeParam)
 	if err != nil {
 		if err != nil {
 			e := validator.ValidationErrors{}
@@ -104,7 +104,7 @@ func (t *ThemeHandler) UpdateThemeFileByID(ctx *fiber.Ctx) (interface{}, error) 
 		return nil, err
 	}
 	themeParam := &param.ThemeContent{}
-	err = ctx.ShouldBindJSON(themeParam)
+	err = ctx.BodyParser(themeParam)
 	if err != nil {
 		if err != nil {
 			e := validator.ValidationErrors{}
