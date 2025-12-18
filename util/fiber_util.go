@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
@@ -46,6 +47,14 @@ func BindAndValidate(ctx *fiber.Ctx, obj interface{}) error {
 		return xerr.BadParam.Wrapf(err, "parse body error")
 	}
 	if Validate == nil {
+		return nil
+	}
+	// Validate.Struct only accepts structs. If obj is a slice (e.g. []string), skip validation or handle differently.
+	val := reflect.ValueOf(obj)
+	if val.Kind() == reflect.Ptr {
+		val = val.Elem()
+	}
+	if val.Kind() != reflect.Struct {
 		return nil
 	}
 	return Validate.Struct(obj)
