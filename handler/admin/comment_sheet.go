@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/consts"
-	"github.com/go-sonic/sonic/handler/binding"
+
 	"github.com/go-sonic/sonic/handler/trans"
 	"github.com/go-sonic/sonic/model/dto"
 	"github.com/go-sonic/sonic/model/entity"
@@ -49,16 +49,16 @@ func NewSheetCommentHandler(
 	}
 }
 
-func (s *SheetCommentHandler) ListSheetComment(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentQuery param.CommentQuery
-	err := ctx.ShouldBindWith(&commentQuery, binding.CustomFormBinding)
+	err := ctx.QueryParser(&commentQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
 	commentQuery.Sort = &param.Sort{
 		Fields: []string{"createTime,desc"},
 	}
-	comments, totalCount, err := s.SheetCommentService.Page(ctx, commentQuery, consts.CommentTypeSheet)
+	comments, totalCount, err := s.SheetCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypeSheet)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +69,7 @@ func (s *SheetCommentHandler) ListSheetComment(ctx *gin.Context) (interface{}, e
 	return dto.NewPage(commentDTOs, totalCount, commentQuery.Page), nil
 }
 
-func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *fiber.Ctx) (interface{}, error) {
 	top, err := util.MustGetQueryInt32(ctx, "top")
 	if err != nil {
 		return nil, err
@@ -78,14 +78,14 @@ func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *gin.Context) (interfac
 		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
 		Page: param.Page{PageNum: 0, PageSize: int(top)},
 	}
-	comments, _, err := s.SheetCommentService.Page(ctx, commentQuery, consts.CommentTypeSheet)
+	comments, _, err := s.SheetCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypeSheet)
 	if err != nil {
 		return nil, err
 	}
 	return s.ConvertToWithSheet(ctx, comments)
 }
 
-func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	postID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -94,24 +94,24 @@ func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *gin.Context) (interfac
 	if err != nil {
 		return nil, err
 	}
-	pageSize, err := s.OptionService.GetOrByDefaultWithErr(ctx, property.CommentPageSize, property.CommentPageSize.DefaultValue)
+	pageSize, err := s.OptionService.GetOrByDefaultWithErr(ctx.UserContext(), property.CommentPageSize, property.CommentPageSize.DefaultValue)
 	if err != nil {
 		return nil, err
 	}
 	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
-	allComments, err := s.SheetCommentService.GetByContentID(ctx, postID, consts.CommentTypeSheet, &param.Sort{Fields: []string{"createTime,desc"}})
+	allComments, err := s.SheetCommentService.GetByContentID(ctx.UserContext(), postID, consts.CommentTypeSheet, &param.Sort{Fields: []string{"createTime,desc"}})
 	if err != nil {
 		return nil, err
 	}
-	commentVOs, totalCount, err := s.SheetCommentAssembler.PageConvertToVOs(ctx, allComments, page)
+	commentVOs, totalCount, err := s.SheetCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, page)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(commentVOs, totalCount, page), nil
 }
 
-func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *fiber.Ctx) (interface{}, error) {
 	postID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -121,13 +121,13 @@ func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *gin.Context) (inte
 		return nil, err
 	}
 
-	pageSize, err := s.OptionService.GetOrByDefaultWithErr(ctx, property.CommentPageSize, property.CommentPageSize.DefaultValue)
+	pageSize, err := s.OptionService.GetOrByDefaultWithErr(ctx.UserContext(), property.CommentPageSize, property.CommentPageSize.DefaultValue)
 	if err != nil {
 		return nil, err
 	}
 	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
-	comments, totalCount, err := s.SheetCommentService.Page(ctx, param.CommentQuery{
+	comments, totalCount, err := s.SheetCommentService.Page(ctx.UserContext(), param.CommentQuery{
 		ContentID: &postID,
 		Page:      page,
 		Sort:      &param.Sort{Fields: []string{"createTime,desc"}},
@@ -136,16 +136,16 @@ func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *gin.Context) (inte
 		return nil, err
 	}
 
-	commentsWithParent, err := s.SheetCommentAssembler.ConvertToWithParentVO(ctx, comments)
+	commentsWithParent, err := s.SheetCommentAssembler.ConvertToWithParentVO(ctx.UserContext(), comments)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(commentsWithParent, totalCount, page), nil
 }
 
-func (s *SheetCommentHandler) CreateSheetComment(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) CreateSheetComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentParam *param.AdminComment
-	err := ctx.ShouldBindJSON(&commentParam)
+	err := util.BindAndValidate(ctx, &commentParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -157,7 +157,7 @@ func (s *SheetCommentHandler) CreateSheetComment(ctx *gin.Context) (interface{},
 	if err != nil || user == nil {
 		return nil, err
 	}
-	blogURL, err := s.OptionService.GetBlogBaseURL(ctx)
+	blogURL, err := s.OptionService.GetBlogBaseURL(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
@@ -171,14 +171,14 @@ func (s *SheetCommentHandler) CreateSheetComment(ctx *gin.Context) (interface{},
 		AllowNotification: true,
 		CommentType:       consts.CommentTypeSheet,
 	}
-	comment, err := s.BaseCommentService.CreateBy(ctx, &commonParam)
+	comment, err := s.BaseCommentService.CreateBy(ctx.UserContext(), &commonParam)
 	if err != nil {
 		return nil, err
 	}
-	return s.SheetCommentAssembler.ConvertToDTO(ctx, comment)
+	return s.SheetCommentAssembler.ConvertToDTO(ctx.UserContext(), comment)
 }
 
-func (s *SheetCommentHandler) UpdateSheetCommentStatus(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) UpdateSheetCommentStatus(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
@@ -191,42 +191,42 @@ func (s *SheetCommentHandler) UpdateSheetCommentStatus(ctx *gin.Context) (interf
 	if err != nil {
 		return nil, err
 	}
-	return s.SheetCommentService.UpdateStatus(ctx, commentID, status)
+	return s.SheetCommentService.UpdateStatus(ctx.UserContext(), commentID, status)
 }
 
-func (s *SheetCommentHandler) UpdateSheetCommentStatusBatch(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) UpdateSheetCommentStatusBatch(ctx *fiber.Ctx) (interface{}, error) {
 	status, err := util.ParamInt32(ctx, "status")
 	if err != nil {
 		return nil, err
 	}
 
 	ids := make([]int32, 0)
-	err = ctx.ShouldBindJSON(&ids)
+	err = util.BindAndValidate(ctx, &ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}
-	comments, err := s.SheetCommentService.UpdateStatusBatch(ctx, ids, consts.CommentStatus(status))
+	comments, err := s.SheetCommentService.UpdateStatusBatch(ctx.UserContext(), ids, consts.CommentStatus(status))
 	if err != nil {
 		return nil, err
 	}
-	return s.SheetCommentAssembler.ConvertToDTOList(ctx, comments)
+	return s.SheetCommentAssembler.ConvertToDTOList(ctx.UserContext(), comments)
 }
 
-func (s *SheetCommentHandler) DeleteSheetComment(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) DeleteSheetComment(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
 	}
-	return nil, s.SheetCommentService.Delete(ctx, commentID)
+	return nil, s.SheetCommentService.Delete(ctx.UserContext(), commentID)
 }
 
-func (s *SheetCommentHandler) DeleteSheetCommentBatch(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) DeleteSheetCommentBatch(ctx *fiber.Ctx) (interface{}, error) {
 	ids := make([]int32, 0)
-	err := ctx.ShouldBindJSON(&ids)
+	err := util.BindAndValidate(ctx, &ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}
-	return nil, s.SheetCommentService.DeleteBatch(ctx, ids)
+	return nil, s.SheetCommentService.DeleteBatch(ctx.UserContext(), ids)
 }
 
 func (s *SheetCommentHandler) ConvertToWithSheet(ctx context.Context, comments []*entity.Comment) ([]*vo.SheetCommentWithSheet, error) {
@@ -234,13 +234,13 @@ func (s *SheetCommentHandler) ConvertToWithSheet(ctx context.Context, comments [
 	for _, comment := range comments {
 		postIDs = append(postIDs, comment.PostID)
 	}
-	posts, err := s.SheetService.GetByPostIDs(ctx, postIDs)
+	posts, err := s.SheetService.GetByPostIDs(ctx.UserContext(), postIDs)
 	if err != nil {
 		return nil, err
 	}
 	result := make([]*vo.SheetCommentWithSheet, 0, len(comments))
 	for _, comment := range comments {
-		commentDTO, err := s.SheetCommentAssembler.ConvertToDTO(ctx, comment)
+		commentDTO, err := s.SheetCommentAssembler.ConvertToDTO(ctx.UserContext(), comment)
 		if err != nil {
 			return nil, err
 		}
@@ -250,7 +250,7 @@ func (s *SheetCommentHandler) ConvertToWithSheet(ctx context.Context, comments [
 		result = append(result, commentWithSheet)
 		post, ok := posts[comment.PostID]
 		if ok {
-			commentWithSheet.PostMinimal, err = s.SheetAssembler.ConvertToMinimalDTO(ctx, post)
+			commentWithSheet.PostMinimal, err = s.SheetAssembler.ConvertToMinimalDTO(ctx.UserContext(), post)
 			if err != nil {
 				return nil, err
 			}
@@ -258,3 +258,4 @@ func (s *SheetCommentHandler) ConvertToWithSheet(ctx context.Context, comments [
 	}
 	return result, nil
 }
+

@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/content/model"
 	"github.com/go-sonic/sonic/template"
@@ -19,6 +19,6 @@ func NewLinkHandler(
 	}
 }
 
-func (t *LinkHandler) Link(ctx *gin.Context, model template.Model) (string, error) {
+func (t *LinkHandler) Link(ctx *fiber.Ctx, model template.Model) (string, error) {
 	return t.LinkModel.Links(ctx, model)
 }

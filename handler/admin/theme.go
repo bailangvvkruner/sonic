@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/consts"
@@ -26,47 +26,47 @@ func NewThemeHandler(l service.ThemeService, o service.OptionService) *ThemeHand
 	}
 }
 
-func (t *ThemeHandler) GetThemeByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeByID(ctx, themeID)
+	return t.ThemeService.GetThemeByID(ctx.UserContext(), themeID)
 }
 
-func (t *ThemeHandler) ListAllThemes(ctx *gin.Context) (interface{}, error) {
-	return t.ThemeService.ListAllTheme(ctx)
+func (t *ThemeHandler) ListAllThemes(ctx *fiber.Ctx) (interface{}, error) {
+	return t.ThemeService.ListAllTheme(ctx.UserContext())
 }
 
-func (t *ThemeHandler) ListActivatedThemeFile(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) ListActivatedThemeFile(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.ListThemeFiles(ctx, activatedThemeID)
+	return t.ThemeService.ListThemeFiles(ctx.UserContext(), activatedThemeID)
 }
 
-func (t *ThemeHandler) ListThemeFileByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) ListThemeFileByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.ListThemeFiles(ctx, themeID)
+	return t.ThemeService.ListThemeFiles(ctx.UserContext(), themeID)
 }
 
-func (t *ThemeHandler) GetThemeFileContent(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeFileContent(ctx *fiber.Ctx) (interface{}, error) {
 	path, err := util.MustGetQueryString(ctx, "path")
 	if err != nil {
 		return nil, err
 	}
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeFileContent(ctx, activatedThemeID, path)
+	return t.ThemeService.GetThemeFileContent(ctx.UserContext(), activatedThemeID, path)
 }
 
-func (t *ThemeHandler) GetThemeFileContentByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeFileContentByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
@@ -76,10 +76,10 @@ func (t *ThemeHandler) GetThemeFileContentByID(ctx *gin.Context) (interface{}, e
 		return nil, err
 	}
 
-	return t.ThemeService.GetThemeFileContent(ctx, themeID, path)
+	return t.ThemeService.GetThemeFileContent(ctx.UserContext(), themeID, path)
 }
 
-func (t *ThemeHandler) UpdateThemeFile(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) UpdateThemeFile(ctx *fiber.Ctx) (interface{}, error) {
 	themeParam := &param.ThemeContent{}
 	err := ctx.ShouldBindJSON(themeParam)
 	if err != nil {
@@ -91,14 +91,14 @@ func (t *ThemeHandler) UpdateThemeFile(ctx *gin.Context) (interface{}, error) {
 			return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 		}
 	}
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return nil, t.ThemeService.UpdateThemeFile(ctx, activatedThemeID, themeParam.Path, themeParam.Content)
+	return nil, t.ThemeService.UpdateThemeFile(ctx.UserContext(), activatedThemeID, themeParam.Path, themeParam.Content)
 }
 
-func (t *ThemeHandler) UpdateThemeFileByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) UpdateThemeFileByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
@@ -114,58 +114,58 @@ func (t *ThemeHandler) UpdateThemeFileByID(ctx *gin.Context) (interface{}, error
 			return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 		}
 	}
-	return nil, t.ThemeService.UpdateThemeFile(ctx, themeID, themeParam.Path, themeParam.Content)
+	return nil, t.ThemeService.UpdateThemeFile(ctx.UserContext(), themeID, themeParam.Path, themeParam.Content)
 }
 
-func (t *ThemeHandler) ListCustomSheetTemplate(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) ListCustomSheetTemplate(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.ListCustomTemplates(ctx, activatedThemeID, consts.ThemeCustomSheetPrefix)
+	return t.ThemeService.ListCustomTemplates(ctx.UserContext(), activatedThemeID, consts.ThemeCustomSheetPrefix)
 }
 
-func (t *ThemeHandler) ListCustomPostTemplate(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) ListCustomPostTemplate(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.ListCustomTemplates(ctx, activatedThemeID, consts.ThemeCustomPostPrefix)
+	return t.ThemeService.ListCustomTemplates(ctx.UserContext(), activatedThemeID, consts.ThemeCustomPostPrefix)
 }
 
-func (t *ThemeHandler) ActivateTheme(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) ActivateTheme(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.ActivateTheme(ctx, themeID)
+	return t.ThemeService.ActivateTheme(ctx.UserContext(), themeID)
 }
 
-func (t *ThemeHandler) GetActivatedTheme(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) GetActivatedTheme(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeByID(ctx, activatedThemeID)
+	return t.ThemeService.GetThemeByID(ctx.UserContext(), activatedThemeID)
 }
 
-func (t *ThemeHandler) GetActivatedThemeConfig(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) GetActivatedThemeConfig(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeConfig(ctx, activatedThemeID)
+	return t.ThemeService.GetThemeConfig(ctx.UserContext(), activatedThemeID)
 }
 
-func (t *ThemeHandler) GetThemeConfigByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeConfigByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeConfig(ctx, themeID)
+	return t.ThemeService.GetThemeConfig(ctx.UserContext(), themeID)
 }
 
-func (t *ThemeHandler) GetThemeConfigByGroup(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeConfigByGroup(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (t *ThemeHandler) GetThemeConfigByGroup(ctx *gin.Context) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	themeSettings, err := t.ThemeService.GetThemeConfig(ctx, themeID)
+	themeSettings, err := t.ThemeService.GetThemeConfig(ctx.UserContext(), themeID)
 	if err != nil {
 		return nil, err
 	}
@@ -186,12 +186,12 @@ func (t *ThemeHandler) GetThemeConfigByGroup(ctx *gin.Context) (interface{}, err
 	return nil, nil
 }
 
-func (t *ThemeHandler) GetThemeConfigGroupNames(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeConfigGroupNames(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
-	themeSettings, err := t.ThemeService.GetThemeConfig(ctx, themeID)
+	themeSettings, err := t.ThemeService.GetThemeConfig(ctx.UserContext(), themeID)
 	if err != nil {
 		return nil, err
 	}
@@ -202,23 +202,23 @@ func (t *ThemeHandler) GetThemeConfigGroupNames(ctx *gin.Context) (interface{}, 
 	return groupNames, nil
 }
 
-func (t *ThemeHandler) GetActivatedThemeSettingMap(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) GetActivatedThemeSettingMap(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeSettingMap(ctx, activatedThemeID)
+	return t.ThemeService.GetThemeSettingMap(ctx.UserContext(), activatedThemeID)
 }
 
-func (t *ThemeHandler) GetThemeSettingMapByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeSettingMapByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeSettingMap(ctx, themeID)
+	return t.ThemeService.GetThemeSettingMap(ctx.UserContext(), themeID)
 }
 
-func (t *ThemeHandler) GetThemeSettingMapByGroupAndThemeID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) GetThemeSettingMapByGroupAndThemeID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
@@ -227,36 +227,36 @@ func (t *ThemeHandler) GetThemeSettingMapByGroupAndThemeID(ctx *gin.Context) (in
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.GetThemeGroupSettingMap(ctx, themeID, group)
+	return t.ThemeService.GetThemeGroupSettingMap(ctx.UserContext(), themeID, group)
 }
 
-func (t *ThemeHandler) SaveActivatedThemeSetting(ctx *gin.Context) (interface{}, error) {
-	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx)
+func (t *ThemeHandler) SaveActivatedThemeSetting(ctx *fiber.Ctx) (interface{}, error) {
+	activatedThemeID, err := t.OptionService.GetActivatedThemeID(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
 	settings := make(map[string]interface{})
-	err = ctx.ShouldBindJSON(&settings)
+	err = util.BindAndValidate(ctx, &settings)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest)
 	}
-	return nil, t.ThemeService.SaveThemeSettings(ctx, activatedThemeID, settings)
+	return nil, t.ThemeService.SaveThemeSettings(ctx.UserContext(), activatedThemeID, settings)
 }
 
-func (t *ThemeHandler) SaveThemeSettingByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) SaveThemeSettingByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
 	}
 	settings := make(map[string]interface{})
-	err = ctx.ShouldBindJSON(&settings)
+	err = util.BindAndValidate(ctx, &settings)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest)
 	}
-	return nil, t.ThemeService.SaveThemeSettings(ctx, themeID, settings)
+	return nil, t.ThemeService.SaveThemeSettings(ctx.UserContext(), themeID, settings)
 }
 
-func (t *ThemeHandler) DeleteThemeByID(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) DeleteThemeByID(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
@@ -265,18 +265,18 @@ func (t *ThemeHandler) DeleteThemeByID(ctx *gin.Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return nil, t.ThemeService.DeleteTheme(ctx, themeID, isDeleteSetting)
+	return nil, t.ThemeService.DeleteTheme(ctx.UserContext(), themeID, isDeleteSetting)
 }
 
-func (t *ThemeHandler) UploadTheme(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) UploadTheme(ctx *fiber.Ctx) (interface{}, error) {
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
 		return nil, xerr.WithMsg(err, "upload theme error").WithStatus(xerr.StatusBadRequest)
 	}
-	return t.ThemeService.UploadTheme(ctx, fileHeader)
+	return t.ThemeService.UploadTheme(ctx.UserContext(), fileHeader)
 }
 
-func (t *ThemeHandler) UpdateThemeByUpload(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) UpdateThemeByUpload(ctx *fiber.Ctx) (interface{}, error) {
 	themeID, err := util.ParamString(ctx, "themeID")
 	if err != nil {
 		return nil, err
@@ -285,26 +285,27 @@ func (t *ThemeHandler) UpdateThemeByUpload(ctx *gin.Context) (interface{}, error
 	if err != nil {
 		return nil, xerr.WithMsg(err, "upload theme error").WithStatus(xerr.StatusBadRequest)
 	}
-	return t.ThemeService.UpdateThemeByUpload(ctx, themeID, fileHeader)
+	return t.ThemeService.UpdateThemeByUpload(ctx.UserContext(), themeID, fileHeader)
 }
 
-func (t *ThemeHandler) FetchTheme(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) FetchTheme(ctx *fiber.Ctx) (interface{}, error) {
 	uri, _ := util.MustGetQueryString(ctx, "uri")
-	return t.ThemeService.Fetch(ctx, uri)
+	return t.ThemeService.Fetch(ctx.UserContext(), uri)
 }
 
-func (t *ThemeHandler) UpdateThemeByFetching(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) UpdateThemeByFetching(ctx *fiber.Ctx) (interface{}, error) {
 	return nil, xerr.WithMsg(nil, "not support").WithStatus(xerr.StatusInternalServerError)
 }
 
-func (t *ThemeHandler) ReloadTheme(ctx *gin.Context) (interface{}, error) {
-	return nil, t.ThemeService.ReloadTheme(ctx)
+func (t *ThemeHandler) ReloadTheme(ctx *fiber.Ctx) (interface{}, error) {
+	return nil, t.ThemeService.ReloadTheme(ctx.UserContext())
 }
 
-func (t *ThemeHandler) TemplateExist(ctx *gin.Context) (interface{}, error) {
+func (t *ThemeHandler) TemplateExist(ctx *fiber.Ctx) (interface{}, error) {
 	template, err := util.MustGetQueryString(ctx, "template")
 	if err != nil {
 		return nil, err
 	}
-	return t.ThemeService.TemplateExist(ctx, template)
+	return t.ThemeService.TemplateExist(ctx.UserContext(), template)
 }
+

@@ -6,7 +6,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/config"
@@ -29,33 +29,33 @@ func NewBackupHandler(backupService service.BackupService) *BackupHandler {
 	}
 }
 
-func (b *BackupHandler) GetWorkDirBackup(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) GetWorkDirBackup(ctx *fiber.Ctx) (interface{}, error) {
 	filename, err := util.MustGetQueryString(ctx, "filename")
 	if err != nil {
 		return nil, err
 	}
-	return b.BackupService.GetBackup(ctx, filepath.Join(config.BackupDir, filename), service.WholeSite)
+	return b.BackupService.GetBackup(ctx.UserContext(), filepath.Join(config.BackupDir, filename), service.WholeSite)
 }
 
-func (b *BackupHandler) GetDataBackup(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) GetDataBackup(ctx *fiber.Ctx) (interface{}, error) {
 	filename, err := util.MustGetQueryString(ctx, "filename")
 	if err != nil {
 		return nil, err
 	}
-	return b.BackupService.GetBackup(ctx, filepath.Join(config.DataExportDir, filename), service.JSONData)
+	return b.BackupService.GetBackup(ctx.UserContext(), filepath.Join(config.DataExportDir, filename), service.JSONData)
 }
 
-func (b *BackupHandler) GetMarkDownBackup(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) GetMarkDownBackup(ctx *fiber.Ctx) (interface{}, error) {
 	filename, err := util.MustGetQueryString(ctx, "filename")
 	if err != nil {
 		return nil, err
 	}
-	return b.BackupService.GetBackup(ctx, filepath.Join(config.BackupMarkdownDir, filename), service.Markdown)
+	return b.BackupService.GetBackup(ctx.UserContext(), filepath.Join(config.BackupMarkdownDir, filename), service.Markdown)
 }
 
-func (b *BackupHandler) BackupWholeSite(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) BackupWholeSite(ctx *fiber.Ctx) (interface{}, error) {
 	toBackupItems := make([]string, 0)
-	err := ctx.ShouldBindJSON(&toBackupItems)
+	err := util.BindAndValidate(ctx, &toBackupItems)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -64,18 +64,18 @@ func (b *BackupHandler) BackupWholeSite(ctx *gin.Context) (interface{}, error) {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest)
 	}
 
-	return b.BackupService.BackupWholeSite(ctx, toBackupItems)
+	return b.BackupService.BackupWholeSite(ctx.UserContext(), toBackupItems)
 }
 
-func (b *BackupHandler) ListBackups(ctx *gin.Context) (interface{}, error) {
-	return b.BackupService.ListFiles(ctx, config.BackupDir, service.WholeSite)
+func (b *BackupHandler) ListBackups(ctx *fiber.Ctx) (interface{}, error) {
+	return b.BackupService.ListFiles(ctx.UserContext(), config.BackupDir, service.WholeSite)
 }
 
-func (b *BackupHandler) ListToBackupItems(ctx *gin.Context) (interface{}, error) {
-	return b.BackupService.ListToBackupItems(ctx)
+func (b *BackupHandler) ListToBackupItems(ctx *fiber.Ctx) (interface{}, error) {
+	return b.BackupService.ListToBackupItems(ctx.UserContext())
 }
 
-func (b *BackupHandler) HandleWorkDir(ctx *gin.Context) {
+func (b *BackupHandler) HandleWorkDir(ctx *fiber.Ctx) {
 	path := ctx.Request.URL.Path
 	if path == "/api/admin/backups/work-dir/fetch" {
 		wrapHandler(b.GetWorkDirBackup)(ctx)
@@ -88,8 +88,8 @@ func (b *BackupHandler) HandleWorkDir(ctx *gin.Context) {
 	b.DownloadBackups(ctx)
 }
 
-func (b *BackupHandler) DownloadBackups(ctx *gin.Context) {
-	filename := ctx.Param("path")
+func (b *BackupHandler) DownloadBackups(ctx *fiber.Ctx) {
+	filename := ctx.Params("path")
 	if filename == "" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, &dto.BaseDTO{
 			Status:  http.StatusBadRequest,
@@ -97,24 +97,24 @@ func (b *BackupHandler) DownloadBackups(ctx *gin.Context) {
 		})
 		return
 	}
-	filePath, err := b.BackupService.GetBackupFilePath(ctx, config.BackupDir, filename)
+	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.BackupDir, filename)
 	if err != nil {
 		log.CtxErrorf(ctx, "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
 		ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
-	ctx.File(filePath)
+	ctx.SendFile(filePath)
 }
 
-func (b *BackupHandler) DeleteBackups(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) DeleteBackups(ctx *fiber.Ctx) (interface{}, error) {
 	filename, err := util.MustGetQueryString(ctx, "filename")
 	if err != nil {
 		return nil, err
 	}
-	return nil, b.BackupService.DeleteFile(ctx, config.BackupDir, filename)
+	return nil, b.BackupService.DeleteFile(ctx.UserContext(), config.BackupDir, filename)
 }
 
-func (b *BackupHandler) ImportMarkdown(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) ImportMarkdown(ctx *fiber.Ctx) (interface{}, error) {
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
 		return nil, xerr.WithMsg(err, "上传文件错误").WithStatus(xerr.StatusBadRequest)
@@ -123,14 +123,14 @@ func (b *BackupHandler) ImportMarkdown(ctx *gin.Context) (interface{}, error) {
 	if filenameExt != ".md" && filenameExt != ".markdown" && filenameExt != ".mdown" {
 		return nil, xerr.WithMsg(err, "Unsupported format").WithStatus(xerr.StatusBadRequest)
 	}
-	return nil, b.BackupService.ImportMarkdown(ctx, fileHeader)
+	return nil, b.BackupService.ImportMarkdown(ctx.UserContext(), fileHeader)
 }
 
-func (b *BackupHandler) ExportData(ctx *gin.Context) (interface{}, error) {
-	return b.BackupService.ExportData(ctx)
+func (b *BackupHandler) ExportData(ctx *fiber.Ctx) (interface{}, error) {
+	return b.BackupService.ExportData(ctx.UserContext())
 }
 
-func (b *BackupHandler) HandleData(ctx *gin.Context) {
+func (b *BackupHandler) HandleData(ctx *fiber.Ctx) {
 	path := ctx.Request.URL.Path
 	if path == "/api/admin/backups/data/fetch" {
 		wrapHandler(b.GetDataBackup)(ctx)
@@ -143,38 +143,38 @@ func (b *BackupHandler) HandleData(ctx *gin.Context) {
 	b.DownloadData(ctx)
 }
 
-func (b *BackupHandler) ListExportData(ctx *gin.Context) (interface{}, error) {
-	return b.BackupService.ListFiles(ctx, config.DataExportDir, service.JSONData)
+func (b *BackupHandler) ListExportData(ctx *fiber.Ctx) (interface{}, error) {
+	return b.BackupService.ListFiles(ctx.UserContext(), config.DataExportDir, service.JSONData)
 }
 
-func (b *BackupHandler) DownloadData(ctx *gin.Context) {
-	filename := ctx.Param("path")
+func (b *BackupHandler) DownloadData(ctx *fiber.Ctx) {
+	filename := ctx.Params("path")
 	if filename == "" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, &dto.BaseDTO{
 			Status:  http.StatusBadRequest,
 			Message: "Filename parameter does not exist",
 		})
 	}
-	filePath, err := b.BackupService.GetBackupFilePath(ctx, config.DataExportDir, filename)
+	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.DataExportDir, filename)
 	if err != nil {
 		log.CtxErrorf(ctx, "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
 		ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
-	ctx.File(filePath)
+	ctx.SendFile(filePath)
 }
 
-func (b *BackupHandler) DeleteDataFile(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) DeleteDataFile(ctx *fiber.Ctx) (interface{}, error) {
 	filename, ok := ctx.GetQuery("filename")
 	if !ok || filename == "" {
 		return nil, xerr.BadParam.New("no filename param").WithStatus(xerr.StatusBadRequest).WithMsg("no filename param")
 	}
-	return nil, b.BackupService.DeleteFile(ctx, config.DataExportDir, filename)
+	return nil, b.BackupService.DeleteFile(ctx.UserContext(), config.DataExportDir, filename)
 }
 
-func (b *BackupHandler) ExportMarkdown(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) ExportMarkdown(ctx *fiber.Ctx) (interface{}, error) {
 	var exportMarkdownParam param.ExportMarkdown
-	err := ctx.ShouldBindJSON(&exportMarkdownParam)
+	err := util.BindAndValidate(ctx, &exportMarkdownParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -182,23 +182,23 @@ func (b *BackupHandler) ExportMarkdown(ctx *gin.Context) (interface{}, error) {
 		}
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest)
 	}
-	return b.BackupService.ExportMarkdown(ctx, exportMarkdownParam.NeedFrontMatter)
+	return b.BackupService.ExportMarkdown(ctx.UserContext(), exportMarkdownParam.NeedFrontMatter)
 }
 
-func (b *BackupHandler) ListMarkdowns(ctx *gin.Context) (interface{}, error) {
-	return b.BackupService.ListFiles(ctx, config.BackupMarkdownDir, service.Markdown)
+func (b *BackupHandler) ListMarkdowns(ctx *fiber.Ctx) (interface{}, error) {
+	return b.BackupService.ListFiles(ctx.UserContext(), config.BackupMarkdownDir, service.Markdown)
 }
 
-func (b *BackupHandler) DeleteMarkdowns(ctx *gin.Context) (interface{}, error) {
+func (b *BackupHandler) DeleteMarkdowns(ctx *fiber.Ctx) (interface{}, error) {
 	filename, err := util.MustGetQueryString(ctx, "filename")
 	if err != nil {
 		return nil, err
 	}
-	return nil, b.BackupService.DeleteFile(ctx, config.BackupMarkdownDir, filename)
+	return nil, b.BackupService.DeleteFile(ctx.UserContext(), config.BackupMarkdownDir, filename)
 }
 
-func (b *BackupHandler) DownloadMarkdown(ctx *gin.Context) {
-	filename := ctx.Param("filename")
+func (b *BackupHandler) DownloadMarkdown(ctx *fiber.Ctx) {
+	filename := ctx.Params("filename")
 	if filename == "" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, &dto.BaseDTO{
 			Status:  http.StatusBadRequest,
@@ -206,19 +206,19 @@ func (b *BackupHandler) DownloadMarkdown(ctx *gin.Context) {
 		})
 		return
 	}
-	filePath, err := b.BackupService.GetBackupFilePath(ctx, config.BackupMarkdownDir, filename)
+	filePath, err := b.BackupService.GetBackupFilePath(ctx.UserContext(), config.BackupMarkdownDir, filename)
 	if err != nil {
 		log.CtxErrorf(ctx, "err=%+v", err)
 		status := xerr.GetHTTPStatus(err)
 		ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 	}
-	ctx.File(filePath)
+	ctx.SendFile(filePath)
 }
 
-type wrapperHandler func(ctx *gin.Context) (interface{}, error)
+type wrapperHandler func(ctx *fiber.Ctx) (interface{}, error)
 
 func wrapHandler(handler wrapperHandler) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+	return func(ctx *fiber.Ctx) {
 		data, err := handler(ctx)
 		if err != nil {
 			log.CtxErrorf(ctx, "err=%+v", err)
@@ -234,3 +234,4 @@ func wrapHandler(handler wrapperHandler) gin.HandlerFunc {
 		})
 	}
 }
+

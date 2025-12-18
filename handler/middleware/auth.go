@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
@@ -30,63 +30,73 @@ func NewAuthMiddleware(optionService service.OptionService, oneTimeTokenService 
 	return authMiddleware
 }
 
-func (a *AuthMiddleware) GetWrapHandler() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		isInstalled, err := a.OptionService.GetOrByDefaultWithErr(ctx, property.IsInstalled, false)
+func (a *AuthMiddleware) GetWrapHandler() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		userCtx := ctx.UserContext()
+
+		isInstalled, err := a.OptionService.GetOrByDefaultWithErr(userCtx, property.IsInstalled, false)
 		if err != nil {
-			abortWithStatusJSON(ctx, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			return
+			return ctx.Status(http.StatusInternalServerError).JSON(&dto.BaseDTO{
+				Status:  http.StatusInternalServerError,
+				Message: http.StatusText(http.StatusInternalServerError),
+			})
 		}
 		if !isInstalled.(bool) {
-			abortWithStatusJSON(ctx, http.StatusBadRequest, "Blog is not initialized")
-			return
+			return ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
+				Status:  http.StatusBadRequest,
+				Message: "Blog is not initialized",
+			})
 		}
 
-		oneTimeToken, ok := ctx.GetQuery(consts.OneTimeTokenQueryName)
-		if ok {
+		oneTimeToken := ctx.Query(consts.OneTimeTokenQueryName)
+		if oneTimeToken != "" {
 			allowedURL, ok := a.OneTimeTokenService.Get(oneTimeToken)
 			if !ok {
-				abortWithStatusJSON(ctx, http.StatusBadRequest, "OneTimeToken is not exist or expired")
-				return
+				return ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
+					Status:  http.StatusBadRequest,
+					Message: "OneTimeToken is not exist or expired",
+				})
 			}
-			currentURL := ctx.Request.URL.Path
+			currentURL := ctx.Path()
 			if currentURL != allowedURL {
-				abortWithStatusJSON(ctx, http.StatusBadRequest, "The one-time token does not correspond the request uri")
-				return
+				return ctx.Status(http.StatusBadRequest).JSON(&dto.BaseDTO{
+					Status:  http.StatusBadRequest,
+					Message: "The one-time token does not correspond the request uri",
+				})
 			}
-			return
+			return ctx.Next()
 		}
 
-		token := ctx.GetHeader(consts.AdminTokenHeaderName)
+		token := ctx.Get(consts.AdminTokenHeaderName)
 		if token == "" {
-			abortWithStatusJSON(ctx, http.StatusUnauthorized, "未登录，请登录后访问")
-			return
+			return ctx.Status(http.StatusUnauthorized).JSON(&dto.BaseDTO{
+				Status:  http.StatusUnauthorized,
+				Message: "未登录，请登录后访问",
+			})
 		}
 		userID, ok := a.Cache.Get(cache.BuildTokenAccessKey(token))
 
 		if !ok || userID == nil {
-			abortWithStatusJSON(ctx, http.StatusUnauthorized, "Token 已过期或不存在")
-			return
+			return ctx.Status(http.StatusUnauthorized).JSON(&dto.BaseDTO{
+				Status:  http.StatusUnauthorized,
+				Message: "Token 已过期或不存在",
+			})
 		}
 
-		user, err := a.UserService.GetByID(ctx, userID.(int32))
+		user, err := a.UserService.GetByID(userCtx, userID.(int32))
 		if xerr.GetType(err) == xerr.NoRecord {
-			_ = ctx.Error(err)
-			abortWithStatusJSON(ctx, http.StatusUnauthorized, "用户不存在")
-			return
+			return ctx.Status(http.StatusUnauthorized).JSON(&dto.BaseDTO{
+				Status:  http.StatusUnauthorized,
+				Message: "用户不存在",
+			})
 		}
 		if err != nil {
-			_ = ctx.Error(err)
-			abortWithStatusJSON(ctx, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			return
+			return ctx.Status(http.StatusInternalServerError).JSON(&dto.BaseDTO{
+				Status:  http.StatusInternalServerError,
+				Message: http.StatusText(http.StatusInternalServerError),
+			})
 		}
-		ctx.Set(consts.AuthorizedUser, user)
+		ctx.Locals(consts.AuthorizedUser, user)
+		return ctx.Next()
 	}
-}
-
-func abortWithStatusJSON(ctx *gin.Context, status int, message string) {
-	ctx.AbortWithStatusJSON(status, &dto.BaseDTO{
-		Status:  status,
-		Message: message,
-	})
 }

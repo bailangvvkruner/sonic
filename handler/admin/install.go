@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/trans"
@@ -22,9 +22,9 @@ func NewInstallHandler(installService service.InstallService) *InstallHandler {
 	}
 }
 
-func (i *InstallHandler) InstallBlog(ctx *gin.Context) (interface{}, error) {
+func (i *InstallHandler) InstallBlog(ctx *fiber.Ctx) (interface{}, error) {
 	var installParam param.Install
-	err := ctx.ShouldBindJSON(&installParam)
+	err := util.BindAndValidate(ctx, &installParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -32,9 +32,10 @@ func (i *InstallHandler) InstallBlog(ctx *gin.Context) (interface{}, error) {
 		}
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest)
 	}
-	err = i.InstallService.InstallBlog(ctx, installParam)
+	err = i.InstallService.InstallBlog(ctx.UserContext(), installParam)
 	if err != nil {
 		return nil, err
 	}
 	return "安装完成", nil
 }
+

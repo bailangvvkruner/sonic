@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/content/model"
 	"github.com/go-sonic/sonic/service"
@@ -40,20 +40,20 @@ func NewCategoryHandler(
 	}
 }
 
-func (c *CategoryHandler) Categories(ctx *gin.Context, model template.Model) (string, error) {
+func (c *CategoryHandler) Categories(ctx *fiber.Ctx, model template.Model) (string, error) {
 	return c.CategoryModel.ListCategories(ctx, model)
 }
 
-func (c *CategoryHandler) CategoryDetail(ctx *gin.Context, model template.Model) (string, error) {
+func (c *CategoryHandler) CategoryDetail(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
 	}
-	token, _ := ctx.Cookie("authentication")
+	token := ctx.Cookies("authentication")
 	return c.CategoryModel.CategoryDetail(ctx, model, slug, 0, token)
 }
 
-func (c *CategoryHandler) CategoryDetailPage(ctx *gin.Context, model template.Model) (string, error) {
+func (c *CategoryHandler) CategoryDetailPage(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
@@ -63,6 +63,6 @@ func (c *CategoryHandler) CategoryDetailPage(ctx *gin.Context, model template.Mo
 	if err != nil {
 		return "", err
 	}
-	token, _ := ctx.Cookie("authentication")
+	token := ctx.Cookies("authentication")
 	return c.CategoryModel.CategoryDetail(ctx, model, slug, int(page-1), token)
 }

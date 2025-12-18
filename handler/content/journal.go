@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/content/model"
 	"github.com/go-sonic/sonic/service"
@@ -27,7 +27,7 @@ func NewJournalHandler(
 	}
 }
 
-func (p *JournalHandler) JournalsPage(ctx *gin.Context, model template.Model) (string, error) {
+func (p *JournalHandler) JournalsPage(ctx *fiber.Ctx, model template.Model) (string, error) {
 	page, err := util.ParamInt32(ctx, "page")
 	if err != nil {
 		return "", err
@@ -35,6 +35,6 @@ func (p *JournalHandler) JournalsPage(ctx *gin.Context, model template.Model) (s
 	return p.JournalModel.Journals(ctx, model, int(page-1))
 }
 
-func (p *JournalHandler) Journals(ctx *gin.Context, model template.Model) (string, error) {
+func (p *JournalHandler) Journals(ctx *fiber.Ctx, model template.Model) (string, error) {
 	return p.JournalModel.Journals(ctx, model, 0)
 }

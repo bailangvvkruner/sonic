@@ -4,35 +4,33 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/zh"
 	ut "github.com/go-playground/universal-translator"
 	"github.com/go-playground/validator/v10"
 	chTranslations "github.com/go-playground/validator/v10/translations/zh"
+
+	"github.com/go-sonic/sonic/util"
 )
 
 var trans ut.Translator
 
 func init() {
 	local := "zh"
-	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-		zhT := zh.New() // chinese
-		enT := en.New() // english
-		uni := ut.New(enT, zhT, enT)
+	v := util.Validate
+	zhT := zh.New() // chinese
+	enT := en.New() // english
+	uni := ut.New(enT, zhT, enT)
 
-		var o bool
-		trans, o = uni.GetTranslator(local)
-		if !o {
-			panic(fmt.Sprintf("uni.GetTranslator(%s) failed", local))
-		}
+	var o bool
+	trans, o = uni.GetTranslator(local)
+	if !o {
+		panic(fmt.Sprintf("uni.GetTranslator(%s) failed", local))
+	}
 
-		err := chTranslations.RegisterDefaultTranslations(v, trans)
-		if err != nil {
-			panic(err)
-		}
-
-		return
+	err := chTranslations.RegisterDefaultTranslations(v, trans)
+	if err != nil {
+		panic(err)
 	}
 }
 

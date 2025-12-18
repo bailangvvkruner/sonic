@@ -3,10 +3,10 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/go-sonic/sonic/handler/binding"
+
 	"github.com/go-sonic/sonic/handler/trans"
 	"github.com/go-sonic/sonic/model/param"
 	"github.com/go-sonic/sonic/service"
@@ -24,9 +24,9 @@ func NewLinkHandler(linkService service.LinkService) *LinkHandler {
 	}
 }
 
-func (l *LinkHandler) ListLinks(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) ListLinks(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindWith(&sort, binding.CustomFormBinding)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -35,26 +35,26 @@ func (l *LinkHandler) ListLinks(ctx *gin.Context) (interface{}, error) {
 	} else {
 		sort.Fields = append(sort.Fields, "priority,asc")
 	}
-	links, err := l.LinkService.List(ctx, &sort)
+	links, err := l.LinkService.List(ctx.UserContext(), &sort)
 	if err != nil {
 		return nil, err
 	}
-	return l.LinkService.ConvertToDTOs(ctx, links), nil
+	return l.LinkService.ConvertToDTOs(ctx.UserContext(), links), nil
 }
 
-func (l *LinkHandler) GetLinkByID(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) GetLinkByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
-	link, err := l.LinkService.GetByID(ctx, id)
+	link, err := l.LinkService.GetByID(ctx.UserContext(), id)
 	if err != nil {
 		return nil, err
 	}
-	return l.LinkService.ConvertToDTO(ctx, link), nil
+	return l.LinkService.ConvertToDTO(ctx.UserContext(), link), nil
 }
 
-func (l *LinkHandler) CreateLink(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) CreateLink(ctx *fiber.Ctx) (interface{}, error) {
 	linkParam := &param.Link{}
 	err := ctx.ShouldBindJSON(linkParam)
 	if err != nil {
@@ -64,14 +64,14 @@ func (l *LinkHandler) CreateLink(ctx *gin.Context) (interface{}, error) {
 		}
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	link, err := l.LinkService.Create(ctx, linkParam)
+	link, err := l.LinkService.Create(ctx.UserContext(), linkParam)
 	if err != nil {
 		return nil, err
 	}
-	return l.LinkService.ConvertToDTO(ctx, link), nil
+	return l.LinkService.ConvertToDTO(ctx.UserContext(), link), nil
 }
 
-func (l *LinkHandler) UpdateLink(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) UpdateLink(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -85,21 +85,22 @@ func (l *LinkHandler) UpdateLink(ctx *gin.Context) (interface{}, error) {
 		}
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	link, err := l.LinkService.Update(ctx, id, linkParam)
+	link, err := l.LinkService.Update(ctx.UserContext(), id, linkParam)
 	if err != nil {
 		return nil, err
 	}
-	return l.LinkService.ConvertToDTO(ctx, link), nil
+	return l.LinkService.ConvertToDTO(ctx.UserContext(), link), nil
 }
 
-func (l *LinkHandler) DeleteLink(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) DeleteLink(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
-	return nil, l.LinkService.Delete(ctx, id)
+	return nil, l.LinkService.Delete(ctx.UserContext(), id)
 }
 
-func (l *LinkHandler) ListLinkTeams(ctx *gin.Context) (interface{}, error) {
-	return l.LinkService.ListTeams(ctx)
+func (l *LinkHandler) ListLinkTeams(ctx *fiber.Ctx) (interface{}, error) {
+	return l.LinkService.ListTeams(ctx.UserContext())
 }
+

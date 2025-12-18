@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/service"
 	"github.com/go-sonic/sonic/util"
@@ -17,10 +17,10 @@ func NewCommentHandler(baseCommentService service.BaseCommentService) *CommentHa
 	}
 }
 
-func (c *CommentHandler) Like(ctx *gin.Context) (interface{}, error) {
+func (c *CommentHandler) Like(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
 	}
-	return nil, c.BaseCommentService.IncreaseLike(ctx, commentID)
+	return nil, c.BaseCommentService.IncreaseLike(ctx.UserContext(), commentID)
 }

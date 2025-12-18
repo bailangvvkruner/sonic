@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/trans"
@@ -23,19 +23,19 @@ func NewCategoryHandler(categoryService service.CategoryService) *CategoryHandle
 	}
 }
 
-func (c *CategoryHandler) GetCategoryByID(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) GetCategoryByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "categoryID")
 	if err != nil {
 		return nil, err
 	}
-	category, err := c.CategoryService.GetByID(ctx, id)
+	category, err := c.CategoryService.GetByID(ctx.UserContext(), id)
 	if err != nil {
 		return nil, err
 	}
-	return c.CategoryService.ConvertToCategoryDTO(ctx, category)
+	return c.CategoryService.ConvertToCategoryDTO(ctx.UserContext(), category)
 }
 
-func (c *CategoryHandler) ListAllCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) ListAllCategory(ctx *fiber.Ctx) (interface{}, error) {
 	categoryQuery := struct {
 		*param.Sort
 		More *bool `json:"more" form:"more"`
@@ -49,16 +49,16 @@ func (c *CategoryHandler) ListAllCategory(ctx *gin.Context) (interface{}, error)
 		categoryQuery.Sort = &param.Sort{Fields: []string{"priority,asc"}}
 	}
 	if categoryQuery.More != nil && *categoryQuery.More {
-		return c.CategoryService.ListCategoryWithPostCountDTO(ctx, categoryQuery.Sort)
+		return c.CategoryService.ListCategoryWithPostCountDTO(ctx.UserContext(), categoryQuery.Sort)
 	}
-	categories, err := c.CategoryService.ListAll(ctx, categoryQuery.Sort)
+	categories, err := c.CategoryService.ListAll(ctx.UserContext(), categoryQuery.Sort)
 	if err != nil {
 		return nil, err
 	}
-	return c.CategoryService.ConvertToCategoryDTOs(ctx, categories)
+	return c.CategoryService.ConvertToCategoryDTOs(ctx.UserContext(), categories)
 }
 
-func (c *CategoryHandler) ListAsTree(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) ListAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	var sort param.Sort
 	err := ctx.ShouldBindQuery(&sort)
 	if err != nil {
@@ -67,12 +67,12 @@ func (c *CategoryHandler) ListAsTree(ctx *gin.Context) (interface{}, error) {
 	if len(sort.Fields) == 0 {
 		sort.Fields = append(sort.Fields, "priority,asc")
 	}
-	return c.CategoryService.ListAsTree(ctx, &sort, false)
+	return c.CategoryService.ListAsTree(ctx.UserContext(), &sort, false)
 }
 
-func (c *CategoryHandler) CreateCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) CreateCategory(ctx *fiber.Ctx) (interface{}, error) {
 	var categoryParam param.Category
-	err := ctx.ShouldBindJSON(&categoryParam)
+	err := util.BindAndValidate(ctx, &categoryParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -80,16 +80,16 @@ func (c *CategoryHandler) CreateCategory(ctx *gin.Context) (interface{}, error) 
 		}
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest)
 	}
-	category, err := c.CategoryService.Create(ctx, &categoryParam)
+	category, err := c.CategoryService.Create(ctx.UserContext(), &categoryParam)
 	if err != nil {
 		return nil, err
 	}
-	return c.CategoryService.ConvertToCategoryDTO(ctx, category)
+	return c.CategoryService.ConvertToCategoryDTO(ctx.UserContext(), category)
 }
 
-func (c *CategoryHandler) UpdateCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) UpdateCategory(ctx *fiber.Ctx) (interface{}, error) {
 	var categoryParam param.Category
-	err := ctx.ShouldBindJSON(&categoryParam)
+	err := util.BindAndValidate(ctx, &categoryParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -102,16 +102,16 @@ func (c *CategoryHandler) UpdateCategory(ctx *gin.Context) (interface{}, error) 
 		return nil, err
 	}
 	categoryParam.ID = categoryID
-	category, err := c.CategoryService.Update(ctx, &categoryParam)
+	category, err := c.CategoryService.Update(ctx.UserContext(), &categoryParam)
 	if err != nil {
 		return nil, err
 	}
-	return c.CategoryService.ConvertToCategoryDTO(ctx, category)
+	return c.CategoryService.ConvertToCategoryDTO(ctx.UserContext(), category)
 }
 
-func (c *CategoryHandler) UpdateCategoryBatch(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) UpdateCategoryBatch(ctx *fiber.Ctx) (interface{}, error) {
 	categoryParams := make([]*param.Category, 0)
-	err := ctx.ShouldBindJSON(&categoryParams)
+	err := util.BindAndValidate(ctx, &categoryParams)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -119,17 +119,18 @@ func (c *CategoryHandler) UpdateCategoryBatch(ctx *gin.Context) (interface{}, er
 		}
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	categories, err := c.CategoryService.UpdateBatch(ctx, categoryParams)
+	categories, err := c.CategoryService.UpdateBatch(ctx.UserContext(), categoryParams)
 	if err != nil {
 		return nil, err
 	}
-	return c.CategoryService.ConvertToCategoryDTOs(ctx, categories)
+	return c.CategoryService.ConvertToCategoryDTOs(ctx.UserContext(), categories)
 }
 
-func (c *CategoryHandler) DeleteCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) DeleteCategory(ctx *fiber.Ctx) (interface{}, error) {
 	categoryID, err := util.ParamInt32(ctx, "categoryID")
 	if err != nil {
 		return nil, err
 	}
-	return nil, c.CategoryService.Delete(ctx, categoryID)
+	return nil, c.CategoryService.Delete(ctx.UserContext(), categoryID)
 }
+

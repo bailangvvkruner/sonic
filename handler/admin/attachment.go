@@ -1,9 +1,9 @@
 package admin
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
-	"github.com/go-sonic/sonic/handler/binding"
+
 	"github.com/go-sonic/sonic/model/dto"
 	"github.com/go-sonic/sonic/model/param"
 	"github.com/go-sonic/sonic/service"
@@ -21,24 +21,24 @@ func NewAttachmentHandler(attachmentService service.AttachmentService) *Attachme
 	}
 }
 
-func (a *AttachmentHandler) QueryAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) QueryAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	queryParam := &param.AttachmentQuery{}
 	err := ctx.ShouldBindWith(queryParam, binding.CustomFormBinding)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}
-	attachments, totalCount, err := a.AttachmentService.Page(ctx, queryParam)
+	attachments, totalCount, err := a.AttachmentService.Page(ctx.UserContext(), queryParam)
 	if err != nil {
 		return nil, err
 	}
-	attachmentDTOs, err := a.AttachmentService.ConvertToDTOs(ctx, attachments)
+	attachmentDTOs, err := a.AttachmentService.ConvertToDTOs(ctx.UserContext(), attachments)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(attachmentDTOs, totalCount, queryParam.Page), nil
 }
 
-func (a *AttachmentHandler) GetAttachmentByID(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) GetAttachmentByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -46,18 +46,18 @@ func (a *AttachmentHandler) GetAttachmentByID(ctx *gin.Context) (interface{}, er
 	if id < 0 {
 		return nil, xerr.BadParam.New("id < 0").WithStatus(xerr.StatusBadRequest).WithMsg("param error")
 	}
-	return a.AttachmentService.GetAttachment(ctx, id)
+	return a.AttachmentService.GetAttachment(ctx.UserContext(), id)
 }
 
-func (a *AttachmentHandler) UploadAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) UploadAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
 		return nil, xerr.WithMsg(err, "上传文件错误").WithStatus(xerr.StatusBadRequest)
 	}
-	return a.AttachmentService.Upload(ctx, fileHeader)
+	return a.AttachmentService.Upload(ctx.UserContext(), fileHeader)
 }
 
-func (a *AttachmentHandler) UploadAttachments(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) UploadAttachments(ctx *fiber.Ctx) (interface{}, error) {
 	form, _ := ctx.MultipartForm()
 	if len(form.File) == 0 {
 		return nil, xerr.BadParam.New("empty files").WithStatus(xerr.StatusBadRequest).WithMsg("empty files")
@@ -65,7 +65,7 @@ func (a *AttachmentHandler) UploadAttachments(ctx *gin.Context) (interface{}, er
 	files := form.File["files"]
 	attachmentDTOs := make([]*dto.AttachmentDTO, 0)
 	for _, file := range files {
-		attachment, err := a.AttachmentService.Upload(ctx, file)
+		attachment, err := a.AttachmentService.Upload(ctx.UserContext(), file)
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +74,7 @@ func (a *AttachmentHandler) UploadAttachments(ctx *gin.Context) (interface{}, er
 	return attachmentDTOs, nil
 }
 
-func (a *AttachmentHandler) UpdateAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) UpdateAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -85,34 +85,35 @@ func (a *AttachmentHandler) UpdateAttachment(ctx *gin.Context) (interface{}, err
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}
-	return a.AttachmentService.Update(ctx, id, updateParam)
+	return a.AttachmentService.Update(ctx.UserContext(), id, updateParam)
 }
 
-func (a *AttachmentHandler) DeleteAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) DeleteAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
-	return a.AttachmentService.Delete(ctx, id)
+	return a.AttachmentService.Delete(ctx.UserContext(), id)
 }
 
-func (a *AttachmentHandler) DeleteAttachmentInBatch(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) DeleteAttachmentInBatch(ctx *fiber.Ctx) (interface{}, error) {
 	ids := make([]int32, 0)
-	err := ctx.ShouldBind(&ids)
+	err := ctx.BodyParser(&ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
-	return a.AttachmentService.DeleteBatch(ctx, ids)
+	return a.AttachmentService.DeleteBatch(ctx.UserContext(), ids)
 }
 
-func (a *AttachmentHandler) GetAllMediaType(ctx *gin.Context) (interface{}, error) {
-	return a.AttachmentService.GetAllMediaTypes(ctx)
+func (a *AttachmentHandler) GetAllMediaType(ctx *fiber.Ctx) (interface{}, error) {
+	return a.AttachmentService.GetAllMediaTypes(ctx.UserContext())
 }
 
-func (a *AttachmentHandler) GetAllTypes(ctx *gin.Context) (interface{}, error) {
-	attachmentTypes, err := a.AttachmentService.GetAllTypes(ctx)
+func (a *AttachmentHandler) GetAllTypes(ctx *fiber.Ctx) (interface{}, error) {
+	attachmentTypes, err := a.AttachmentService.GetAllTypes(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
 	return attachmentTypes, nil
 }
+

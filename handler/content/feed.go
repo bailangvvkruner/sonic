@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/model/entity"
@@ -38,68 +38,68 @@ func NewFeedHandler(optionService service.OptionService, postService service.Pos
 	}
 }
 
-func (f *FeedHandler) Feed(ctx *gin.Context, model template.Model) (string, error) {
+func (f *FeedHandler) Feed(ctx *fiber.Ctx, model template.Model) (string, error) {
 	_, err := f.Atom(ctx, model)
 	if err != nil {
 		return "", err
 	}
-	ctx.Header("Content-Type", "application/xml; charset=utf-8")
+	ctx.Set("Content-Type", "application/xml; charset=utf-8")
 	return "common/web/rss", nil
 }
 
-func (f *FeedHandler) CategoryFeed(ctx *gin.Context, model template.Model) (string, error) {
+func (f *FeedHandler) CategoryFeed(ctx *fiber.Ctx, model template.Model) (string, error) {
 	_, err := f.CategoryAtom(ctx, model)
 	if err != nil {
 		return "", err
 	}
-	ctx.Header("Content-Type", "application/xml; charset=utf-8")
+	ctx.Set("Content-Type", "application/xml; charset=utf-8")
 	return "common/web/rss", nil
 }
 
-func (f *FeedHandler) Atom(ctx *gin.Context, model template.Model) (string, error) {
-	rssPageSize := f.OptionService.GetOrByDefault(ctx, property.RssPageSize).(int)
+func (f *FeedHandler) Atom(ctx *fiber.Ctx, model template.Model) (string, error) {
+	rssPageSize := f.OptionService.GetOrByDefault(ctx.UserContext(), property.RssPageSize).(int)
 	postQuery := param.PostQuery{
 		Page:     param.Page{PageNum: 0, PageSize: rssPageSize},
 		Sort:     &param.Sort{Fields: []string{"createTime,desc"}},
 		Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
 	}
-	posts, _, err := f.PostService.Page(ctx, postQuery)
+	posts, _, err := f.PostService.Page(ctx.UserContext(), postQuery)
 	if err != nil {
 		return "", err
 	}
-	postDetailVOs, err := f.buildPost(ctx, posts)
+	postDetailVOs, err := f.buildPost(ctx.UserContext(), posts)
 	if err != nil {
 		return "", err
 	}
 	lastModified := f.getLastModifiedTime(posts)
-	ctx.Header("Last-Modified", lastModified.Format(http.TimeFormat))
-	ctx.Header("Content-Type", "application/xml; charset=utf-8")
+	ctx.Set("Last-Modified", lastModified.Format(http.TimeFormat))
+	ctx.Set("Content-Type", "application/xml; charset=utf-8")
 	model["lastModified"] = lastModified
 	model["posts"] = postDetailVOs
 	return "common/web/atom", nil
 }
 
-func (f *FeedHandler) CategoryAtom(ctx *gin.Context, model template.Model) (string, error) {
+func (f *FeedHandler) CategoryAtom(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
 	}
 	slug = strings.TrimSuffix(slug, ".xml")
-	category, err := f.CategoryService.GetBySlug(ctx, slug)
+	category, err := f.CategoryService.GetBySlug(ctx.UserContext(), slug)
 	if err != nil {
 		return "", err
 	}
-	categoryDTO, err := f.CategoryService.ConvertToCategoryDTO(ctx, category)
-	if err != nil {
-		return "", err
-	}
-
-	posts, err := f.PostCategoryService.ListByCategoryID(ctx, category.ID, consts.PostStatusPublished)
+	categoryDTO, err := f.CategoryService.ConvertToCategoryDTO(ctx.UserContext(), category)
 	if err != nil {
 		return "", err
 	}
 
-	postDetailVOs, err := f.buildPost(ctx, posts)
+	posts, err := f.PostCategoryService.ListByCategoryID(ctx.UserContext(), category.ID, consts.PostStatusPublished)
+	if err != nil {
+		return "", err
+	}
+
+	postDetailVOs, err := f.buildPost(ctx.UserContext(), posts)
 	if err != nil {
 		return "", err
 	}
@@ -108,17 +108,17 @@ func (f *FeedHandler) CategoryAtom(ctx *gin.Context, model template.Model) (stri
 	model["category"] = categoryDTO
 	model["posts"] = postDetailVOs
 	model["lastModified"] = lastModified
-	ctx.Header("Content-Type", "application/xml; charset=utf-8")
+	ctx.Set("Content-Type", "application/xml; charset=utf-8")
 	return "common/web/atom", nil
 }
 
-func (f *FeedHandler) Robots(ctx *gin.Context, model template.Model) (string, error) {
-	ctx.Header("Content-Type", "text/plain;charset=utf-8")
+func (f *FeedHandler) Robots(ctx *fiber.Ctx, model template.Model) (string, error) {
+	ctx.Set("Content-Type", "text/plain;charset=utf-8")
 	return "common/web/robots", nil
 }
 
-func (f *FeedHandler) SitemapXML(ctx *gin.Context, model template.Model) (string, error) {
-	posts, _, err := f.PostService.Page(ctx, param.PostQuery{
+func (f *FeedHandler) SitemapXML(ctx *fiber.Ctx, model template.Model) (string, error) {
+	posts, _, err := f.PostService.Page(ctx.UserContext(), param.PostQuery{
 		Page:     param.Page{PageNum: 0, PageSize: int(^uint(0) >> 1)},
 		Sort:     &param.Sort{Fields: []string{"createTime,desc"}},
 		Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
@@ -126,18 +126,18 @@ func (f *FeedHandler) SitemapXML(ctx *gin.Context, model template.Model) (string
 	if err != nil {
 		return "", err
 	}
-	postDetailVOs, err := f.buildPost(ctx, posts)
+	postDetailVOs, err := f.buildPost(ctx.UserContext(), posts)
 	if err != nil {
 		return "", err
 	}
 	model["posts"] = postDetailVOs
 
-	ctx.Header("Content-Type", "application/xml; charset=utf-8")
+	ctx.Set("Content-Type", "application/xml; charset=utf-8")
 	return "common/web/sitemap_xml", nil
 }
 
-func (f *FeedHandler) SitemapHTML(ctx *gin.Context, model template.Model) (string, error) {
-	posts, _, err := f.PostService.Page(ctx, param.PostQuery{
+func (f *FeedHandler) SitemapHTML(ctx *fiber.Ctx, model template.Model) (string, error) {
+	posts, _, err := f.PostService.Page(ctx.UserContext(), param.PostQuery{
 		Page:     param.Page{PageNum: 0, PageSize: int(^uint(0) >> 1)},
 		Sort:     &param.Sort{Fields: []string{"createTime,desc"}},
 		Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
@@ -145,7 +145,7 @@ func (f *FeedHandler) SitemapHTML(ctx *gin.Context, model template.Model) (strin
 	if err != nil {
 		return "", err
 	}
-	postDetailVOs, err := f.buildPost(ctx, posts)
+	postDetailVOs, err := f.buildPost(ctx.UserContext(), posts)
 	if err != nil {
 		return "", err
 	}

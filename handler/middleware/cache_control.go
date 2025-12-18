@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 )
 
 type CacheControlMiddleware struct {
@@ -22,7 +22,7 @@ func NewCacheControlMiddleware(opts ...CacheControlOption) *CacheControlMiddlewa
 	return c
 }
 
-func (c *CacheControlMiddleware) CacheControl() gin.HandlerFunc {
+func (c *CacheControlMiddleware) CacheControl() fiber.Handler {
 	value := ""
 	if c.Public {
 		value = "public,"
@@ -30,8 +30,9 @@ func (c *CacheControlMiddleware) CacheControl() gin.HandlerFunc {
 	if c.MaxAge > 0 {
 		value = "max-age=" + strconv.FormatInt(int64(c.MaxAge.Seconds()), 10)
 	}
-	return func(ctx *gin.Context) {
-		ctx.Header("Cache-Control", value)
+	return func(ctx *fiber.Ctx) error {
+		ctx.Set("Cache-Control", value)
+		return ctx.Next()
 	}
 }
 

@@ -7,7 +7,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/dig"
 	"go.uber.org/fx"
 	"go.uber.org/zap"
@@ -27,8 +27,7 @@ import (
 type Server struct {
 	logger                    *zap.Logger
 	Config                    *config.Config
-	HTTPServer                *http.Server
-	Router                    *gin.Engine
+	Router                    *fiber.App
 	Template                  *template.Template
 	AuthMiddleware            *middleware.AuthMiddleware
 	LogMiddleware             *middleware.GinLoggerMiddleware
@@ -137,20 +136,17 @@ type ServerParams struct {
 }
 
 func NewServer(param ServerParams, lifecycle fx.Lifecycle) *Server {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.New()
-	conf := param.Config
-
-	httpServer := &http.Server{
-		Addr:    fmt.Sprintf("%s:%s", conf.Server.Host, conf.Server.Port),
-		Handler: router,
-	}
-
+	// gin.SetMode(gin.ReleaseMode) // Fiber doesn't have a global mode setting like Gin
+	
+	// Initialize Fiber app
+	app := fiber.New(fiber.Config{
+		DisableStartupMessage: true,
+	})
+	
 	s := &Server{
 		logger:                    param.Logger,
 		Config:                    param.Config,
-		HTTPServer:                httpServer,
-		Router:                    router,
+		Router:                    app,
 		Template:                  param.Template,
 		AuthMiddleware:            param.AuthMiddleware,
 		LogMiddleware:             param.LogMiddleware,
@@ -202,20 +198,20 @@ func NewServer(param ServerParams, lifecycle fx.Lifecycle) *Server {
 		ContentAPICommentHandler:  param.ContentAPICommentHandler,
 	}
 	lifecycle.Append(fx.Hook{
-		OnStop:  httpServer.Shutdown,
+		OnStop: func(ctx context.Context) error {
+			return app.Shutdown()
+		},
 		OnStart: s.Run,
 	})
 	return s
 }
 
 func (s *Server) Run(ctx context.Context) error {
-	if config.IsDev() {
-		gin.SetMode(gin.DebugMode)
-	}
 	go func() {
-		if err := s.HTTPServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		addr := fmt.Sprintf("%s:%s", s.Config.Server.Host, s.Config.Server.Port)
+		if err := s.Router.Listen(addr); err != nil {
 			// print err info when httpServer start failed
-			s.logger.Error("unexpected error from ListenAndServe", zap.Error(err))
+			s.logger.Error("unexpected error from Listen", zap.Error(err))
 			fmt.Printf("http server start error:%s\n", err.Error())
 			os.Exit(1)
 		}
@@ -223,19 +219,18 @@ func (s *Server) Run(ctx context.Context) error {
 	return nil
 }
 
-type wrapperHandler func(ctx *gin.Context) (interface{}, error)
+type wrapperHandler func(ctx *fiber.Ctx) (interface{}, error)
 
-func (s *Server) wrapHandler(handler wrapperHandler) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func (s *Server) wrapHandler(handler wrapperHandler) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		data, err := handler(ctx)
 		if err != nil {
 			s.logger.Error("handler error", zap.Error(err))
 			status := xerr.GetHTTPStatus(err)
-			ctx.JSON(status, &dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
-			return
+			return ctx.Status(status).JSON(&dto.BaseDTO{Status: status, Message: xerr.GetMessage(err)})
 		}
 
-		ctx.JSON(http.StatusOK, &dto.BaseDTO{
+		return ctx.Status(http.StatusOK).JSON(&dto.BaseDTO{
 			Status:  http.StatusOK,
 			Data:    data,
 			Message: "OK",
@@ -243,76 +238,76 @@ func (s *Server) wrapHandler(handler wrapperHandler) gin.HandlerFunc {
 	}
 }
 
-type wrapperHTMLHandler func(ctx *gin.Context, model template.Model) (templateName string, err error)
+type wrapperHTMLHandler func(ctx *fiber.Ctx, model template.Model) (templateName string, err error)
 
 var (
-	htmlContentType = []string{"text/html; charset=utf-8"}
-	xmlContentType  = []string{"application/xml; charset=utf-8"}
+	htmlContentType = "text/html; charset=utf-8"
+	xmlContentType  = "application/xml; charset=utf-8"
 )
 
-func (s *Server) wrapHTMLHandler(handler wrapperHTMLHandler) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func (s *Server) wrapHTMLHandler(handler wrapperHTMLHandler) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		model := template.Model{}
 		templateName, err := handler(ctx, model)
 		if err != nil {
-			s.handleError(ctx, err)
-			return
+			return s.handleError(ctx, err)
 		}
 		if templateName == "" {
-			return
+			return nil
 		}
-		header := ctx.Writer.Header()
-		if val := header["Content-Type"]; len(val) == 0 {
-			header["Content-Type"] = htmlContentType
-		}
-		err = s.Template.ExecuteTemplate(ctx.Writer, templateName, model)
+		
+		ctx.Set("Content-Type", htmlContentType)
+		
+		err = s.Template.ExecuteTemplate(ctx.Response().BodyWriter(), templateName, model)
 		if err != nil {
 			s.logger.Error("render template err", zap.Error(err))
+			return err
 		}
+		return nil
 	}
 }
 
-func (s *Server) wrapTextHandler(handler wrapperHTMLHandler) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
+func (s *Server) wrapTextHandler(handler wrapperHTMLHandler) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 		model := template.Model{}
 		templateName, err := handler(ctx, model)
 		if err != nil {
-			s.handleError(ctx, err)
-			return
+			return s.handleError(ctx, err)
 		}
-		header := ctx.Writer.Header()
-		if val := header["Content-Type"]; len(val) == 0 {
-			header["Content-Type"] = xmlContentType
-		}
-		err = s.Template.ExecuteTextTemplate(ctx.Writer, templateName, model)
+		
+		ctx.Set("Content-Type", xmlContentType)
+		
+		err = s.Template.ExecuteTextTemplate(ctx.Response().BodyWriter(), templateName, model)
 		if err != nil {
 			s.logger.Error("render template err", zap.Error(err))
+			return err
 		}
+		return nil
 	}
 }
 
-func (s *Server) handleError(ctx *gin.Context, err error) {
+func (s *Server) handleError(ctx *fiber.Ctx, err error) error {
 	status := xerr.GetHTTPStatus(err)
 	message := xerr.GetMessage(err)
 	model := template.Model{}
 
-	templateName, _ := s.ThemeService.Render(ctx, strconv.Itoa(status))
+	templateName, _ := s.ThemeService.Render(ctx.UserContext(), strconv.Itoa(status))
 	t := s.Template.HTMLTemplate.Lookup(templateName)
 	if t == nil {
 		templateName = "common/error/error"
 	}
 
-	header := ctx.Writer.Header()
-	if val := header["Content-Type"]; len(val) == 0 {
-		header["Content-Type"] = htmlContentType
-	}
+	ctx.Status(status)
+	ctx.Set("Content-Type", htmlContentType)
 
 	model["status"] = status
 	model["message"] = message
 	model["err"] = err
 
-	err = s.Template.ExecuteTemplate(ctx.Writer, templateName, model)
+	err = s.Template.ExecuteTemplate(ctx.Response().BodyWriter(), templateName, model)
 	if err != nil {
 		s.logger.Error("render error template err", zap.Error(err))
+		return err
 	}
+	return nil
 }

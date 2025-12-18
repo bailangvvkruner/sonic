@@ -1,11 +1,14 @@
 package middleware
 
 import (
+	"context"
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
+
+	"github.com/go-sonic/sonic/util"
 )
 
 type GinLoggerMiddleware struct {
@@ -26,7 +29,7 @@ type GinLoggerConfig struct {
 }
 
 // LoggerWithConfig instance a Logger middleware with config.
-func (g *GinLoggerMiddleware) LoggerWithConfig(conf GinLoggerConfig) gin.HandlerFunc {
+func (g *GinLoggerMiddleware) LoggerWithConfig(conf GinLoggerConfig) fiber.Handler {
 	logger := g.logger.WithOptions(zap.WithCaller(false))
 	notLogged := conf.SkipPaths
 
@@ -40,17 +43,26 @@ func (g *GinLoggerMiddleware) LoggerWithConfig(conf GinLoggerConfig) gin.Handler
 		}
 	}
 
-	return func(ctx *gin.Context) {
+	return func(ctx *fiber.Ctx) error {
+		// Populate context with IP and UserAgent
+		userCtx := ctx.UserContext()
+		if userCtx == nil {
+			userCtx = context.Background()
+		}
+		userCtx = util.SetClientIP(userCtx, ctx.IP())
+		userCtx = util.SetUserAgent(userCtx, ctx.Get("User-Agent"))
+		ctx.SetUserContext(userCtx)
+
 		// Start timer
 		start := time.Now()
-		path := ctx.Request.URL.Path
-		raw := ctx.Request.URL.RawQuery
+		path := ctx.Path()
+		raw := string(ctx.Request().URI().QueryString())
 
 		// Process request
-		ctx.Next()
+		err := ctx.Next()
 
-		if len(ctx.Errors) > 0 {
-			logger.Error(ctx.Errors.ByType(gin.ErrorTypePrivate).String())
+		if err != nil {
+			logger.Error(err.Error())
 		}
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
@@ -59,16 +71,17 @@ func (g *GinLoggerMiddleware) LoggerWithConfig(conf GinLoggerConfig) gin.Handler
 			}
 			path = strings.ReplaceAll(path, "\n", "")
 			path = strings.ReplaceAll(path, "\r", "")
-			clientIP := strings.ReplaceAll(ctx.ClientIP(), "\n", "")
+			clientIP := strings.ReplaceAll(ctx.IP(), "\n", "")
 			clientIP = strings.ReplaceAll(clientIP, "\r", "")
 
-			logger.Info("[GIN]",
+			logger.Info("[FIBER]",
 				zap.Time("beginTime", start),
-				zap.Int("status", ctx.Writer.Status()),
+				zap.Int("status", ctx.Response().StatusCode()),
 				zap.Duration("latency", time.Since(start)),
 				zap.String("clientIP", clientIP),
-				zap.String("method", ctx.Request.Method),
+				zap.String("method", ctx.Method()),
 				zap.String("path", path))
 		}
+		return err
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 
 	"github.com/go-sonic/sonic/model/dto"
@@ -22,10 +22,10 @@ func NewRecoveryMiddleware(logger *zap.Logger) *RecoveryMiddleware {
 	}
 }
 
-func (r *RecoveryMiddleware) RecoveryWithLogger() gin.HandlerFunc {
+func (r *RecoveryMiddleware) RecoveryWithLogger() fiber.Handler {
 	logger := r.logger.WithOptions(zap.AddCallerSkip(2))
 
-	return func(ctx *gin.Context) {
+	return func(ctx *fiber.Ctx) error {
 		defer func() {
 			if err := recover(); err != nil {
 				// Check for a broken connection, as it is not really a
@@ -42,7 +42,7 @@ func (r *RecoveryMiddleware) RecoveryWithLogger() gin.HandlerFunc {
 				}
 
 				if brokenPipe {
-					logger.Error(ctx.Request.URL.Path,
+					logger.Error(ctx.Path(),
 						zap.Any("error", err),
 					)
 				} else {
@@ -51,14 +51,14 @@ func (r *RecoveryMiddleware) RecoveryWithLogger() gin.HandlerFunc {
 
 				if brokenPipe {
 					// If the connection is dead, we can't write a status to it.
-					ctx.Error(err.(error)) // nolint: errcheck
-					ctx.Abort()
+					// In Fiber/Fasthttp, we just return.
+					return
 				} else {
 					code := http.StatusInternalServerError
-					ctx.AbortWithStatusJSON(code, &dto.BaseDTO{Status: code, Message: http.StatusText(code)})
+					ctx.Status(code).JSON(&dto.BaseDTO{Status: code, Message: http.StatusText(code)})
 				}
 			}
 		}()
-		ctx.Next()
+		return ctx.Next()
 	}
 }

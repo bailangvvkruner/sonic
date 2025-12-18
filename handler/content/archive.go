@@ -3,7 +3,7 @@ package content
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
@@ -46,11 +46,11 @@ func NewArchiveHandler(
 	}
 }
 
-func (a *ArchiveHandler) Archives(ctx *gin.Context, model template.Model) (string, error) {
+func (a *ArchiveHandler) Archives(ctx *fiber.Ctx, model template.Model) (string, error) {
 	return a.PostModel.Archives(ctx, 0, model)
 }
 
-func (a *ArchiveHandler) ArchivesPage(ctx *gin.Context, model template.Model) (string, error) {
+func (a *ArchiveHandler) ArchivesPage(ctx *fiber.Ctx, model template.Model) (string, error) {
 	page, err := util.ParamInt32(ctx, "page")
 	if err != nil {
 		return "", err
@@ -58,19 +58,19 @@ func (a *ArchiveHandler) ArchivesPage(ctx *gin.Context, model template.Model) (s
 	return a.PostModel.Archives(ctx, int(page-1), model)
 }
 
-func (a *ArchiveHandler) ArchivesBySlug(ctx *gin.Context, model template.Model) (string, error) {
+func (a *ArchiveHandler) ArchivesBySlug(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
 	}
 
-	postPermalinkType, err := a.OptionService.GetPostPermalinkType(ctx)
+	postPermalinkType, err := a.OptionService.GetPostPermalinkType(ctx.UserContext())
 	if err != nil {
 		return "", err
 	}
 	var post *entity.Post
 	if postPermalinkType == consts.PostPermalinkTypeDefault {
-		post, err = a.PostService.GetBySlug(ctx, slug)
+		post, err = a.PostService.GetBySlug(ctx.UserContext(), slug)
 		if err != nil {
 			return "", err
 		}
@@ -79,17 +79,17 @@ func (a *ArchiveHandler) ArchivesBySlug(ctx *gin.Context, model template.Model) 
 		if err != nil {
 			return "", err
 		}
-		post, err = a.PostService.GetByPostID(ctx, int32(postID))
+		post, err = a.PostService.GetByPostID(ctx.UserContext(), int32(postID))
 		if err != nil {
 			return "", err
 		}
 	}
-	token, _ := ctx.Cookie("authentication")
+	token := ctx.Cookies("authentication")
 	return a.PostModel.Content(ctx, post, token, model)
 }
 
 // AdminArchivesBySlug It can only be used in the console  to preview articles
-func (a *ArchiveHandler) AdminArchivesBySlug(ctx *gin.Context, model template.Model) (string, error) {
+func (a *ArchiveHandler) AdminArchivesBySlug(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
@@ -106,13 +106,13 @@ func (a *ArchiveHandler) AdminArchivesBySlug(ctx *gin.Context, model template.Mo
 		return "", xerr.WithStatus(nil, xerr.StatusBadRequest).WithMsg("token已过期或者不存在")
 	}
 
-	postPermalinkType, err := a.OptionService.GetPostPermalinkType(ctx)
+	postPermalinkType, err := a.OptionService.GetPostPermalinkType(ctx.UserContext())
 	if err != nil {
 		return "", err
 	}
 	var post *entity.Post
 	if postPermalinkType == consts.PostPermalinkTypeDefault {
-		post, err = a.PostService.GetBySlug(ctx, slug)
+		post, err = a.PostService.GetBySlug(ctx.UserContext(), slug)
 		if err != nil {
 			return "", err
 		}
@@ -121,7 +121,7 @@ func (a *ArchiveHandler) AdminArchivesBySlug(ctx *gin.Context, model template.Mo
 		if err != nil {
 			return "", err
 		}
-		post, err = a.PostService.GetByPostID(ctx, int32(postID))
+		post, err = a.PostService.GetByPostID(ctx.UserContext(), int32(postID))
 		if err != nil {
 			return "", err
 		}

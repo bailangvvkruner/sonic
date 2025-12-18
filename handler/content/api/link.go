@@ -1,7 +1,7 @@
 package api
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/model/param"
 	"github.com/go-sonic/sonic/service"
@@ -21,9 +21,9 @@ type linkParam struct {
 	*param.Sort
 }
 
-func (l *LinkHandler) ListLinks(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) ListLinks(ctx *fiber.Ctx) (interface{}, error) {
 	p := linkParam{}
-	if err := ctx.ShouldBindQuery(&p); err != nil {
+	if err := ctx.QueryParser(&p); err != nil {
 		return nil, err
 	}
 
@@ -32,16 +32,16 @@ func (l *LinkHandler) ListLinks(ctx *gin.Context) (interface{}, error) {
 			Fields: []string{"createTime,desc"},
 		}
 	}
-	links, err := l.LinkService.List(ctx, p.Sort)
+	links, err := l.LinkService.List(ctx.UserContext(), p.Sort)
 	if err != nil {
 		return nil, err
 	}
-	return l.LinkService.ConvertToDTOs(ctx, links), nil
+	return l.LinkService.ConvertToDTOs(ctx.UserContext(), links), nil
 }
 
-func (l *LinkHandler) LinkTeamVO(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) LinkTeamVO(ctx *fiber.Ctx) (interface{}, error) {
 	p := linkParam{}
-	if err := ctx.ShouldBindQuery(&p); err != nil {
+	if err := ctx.QueryParser(&p); err != nil {
 		return nil, err
 	}
 
@@ -50,9 +50,9 @@ func (l *LinkHandler) LinkTeamVO(ctx *gin.Context) (interface{}, error) {
 			Fields: []string{"createTime,desc"},
 		}
 	}
-	links, err := l.LinkService.List(ctx, p.Sort)
+	links, err := l.LinkService.List(ctx.UserContext(), p.Sort)
 	if err != nil {
 		return nil, err
 	}
-	return l.LinkService.ConvertToLinkTeamVO(ctx, links), nil
+	return l.LinkService.ConvertToLinkTeamVO(ctx.UserContext(), links), nil
 }

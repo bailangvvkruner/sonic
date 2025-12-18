@@ -3,11 +3,11 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/consts"
-	"github.com/go-sonic/sonic/handler/binding"
+
 	"github.com/go-sonic/sonic/handler/trans"
 	"github.com/go-sonic/sonic/model/dto"
 	"github.com/go-sonic/sonic/model/param"
@@ -43,27 +43,27 @@ func NewPostCommentHandler(
 	}
 }
 
-func (p *PostCommentHandler) ListPostComment(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) ListPostComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentQuery param.CommentQuery
-	err := ctx.ShouldBindWith(&commentQuery, binding.CustomFormBinding)
+	err := ctx.QueryParser(&commentQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
 	commentQuery.Sort = &param.Sort{
 		Fields: []string{"createTime,desc"},
 	}
-	comments, totalCount, err := p.PostCommentService.Page(ctx, commentQuery, consts.CommentTypePost)
+	comments, totalCount, err := p.PostCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypePost)
 	if err != nil {
 		return nil, err
 	}
-	commentDTOs, err := p.PostCommentAssembler.ConvertToWithPost(ctx, comments)
+	commentDTOs, err := p.PostCommentAssembler.ConvertToWithPost(ctx.UserContext(), comments)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(commentDTOs, totalCount, commentQuery.Page), nil
 }
 
-func (p *PostCommentHandler) ListPostCommentLatest(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) ListPostCommentLatest(ctx *fiber.Ctx) (interface{}, error) {
 	top, err := util.MustGetQueryInt32(ctx, "top")
 	if err != nil {
 		return nil, err
@@ -72,14 +72,14 @@ func (p *PostCommentHandler) ListPostCommentLatest(ctx *gin.Context) (interface{
 		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
 		Page: param.Page{PageNum: 0, PageSize: int(top)},
 	}
-	comments, _, err := p.PostCommentService.Page(ctx, commentQuery, consts.CommentTypePost)
+	comments, _, err := p.PostCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypePost)
 	if err != nil {
 		return nil, err
 	}
-	return p.PostCommentAssembler.ConvertToWithPost(ctx, comments)
+	return p.PostCommentAssembler.ConvertToWithPost(ctx.UserContext(), comments)
 }
 
-func (p *PostCommentHandler) ListPostCommentAsTree(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) ListPostCommentAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	postID, err := util.ParamInt32(ctx, "postID")
 	if err != nil {
 		return nil, err
@@ -88,23 +88,23 @@ func (p *PostCommentHandler) ListPostCommentAsTree(ctx *gin.Context) (interface{
 	if err != nil {
 		return nil, err
 	}
-	pageSize, err := p.OptionService.GetOrByDefaultWithErr(ctx, property.CommentPageSize, property.CommentPageSize.DefaultValue)
+	pageSize, err := p.OptionService.GetOrByDefaultWithErr(ctx.UserContext(), property.CommentPageSize, property.CommentPageSize.DefaultValue)
 	if err != nil {
 		return nil, err
 	}
 	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
-	allComments, err := p.PostCommentService.GetByContentID(ctx, postID, consts.CommentTypePost, &param.Sort{Fields: []string{"createTime,desc"}})
+	allComments, err := p.PostCommentService.GetByContentID(ctx.UserContext(), postID, consts.CommentTypePost, &param.Sort{Fields: []string{"createTime,desc"}})
 	if err != nil {
 		return nil, err
 	}
-	commentVOs, totalCount, err := p.PostCommentAssembler.PageConvertToVOs(ctx, allComments, page)
+	commentVOs, totalCount, err := p.PostCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, page)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(commentVOs, totalCount, page), nil
 }
 
-func (p *PostCommentHandler) ListPostCommentWithParent(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) ListPostCommentWithParent(ctx *fiber.Ctx) (interface{}, error) {
 	postID, err := util.ParamInt32(ctx, "postID")
 	if err != nil {
 		return nil, err
@@ -114,14 +114,14 @@ func (p *PostCommentHandler) ListPostCommentWithParent(ctx *gin.Context) (interf
 		return nil, err
 	}
 
-	pageSize, err := p.OptionService.GetOrByDefaultWithErr(ctx, property.CommentPageSize, property.CommentPageSize.DefaultValue)
+	pageSize, err := p.OptionService.GetOrByDefaultWithErr(ctx.UserContext(), property.CommentPageSize, property.CommentPageSize.DefaultValue)
 	if err != nil {
 		return nil, err
 	}
 
 	page := param.Page{PageNum: int(pageNum), PageSize: pageSize.(int)}
 
-	comments, totalCount, err := p.PostCommentService.Page(ctx, param.CommentQuery{
+	comments, totalCount, err := p.PostCommentService.Page(ctx.UserContext(), param.CommentQuery{
 		ContentID: &postID,
 		Page:      page,
 		Sort:      &param.Sort{Fields: []string{"createTime,desc"}},
@@ -130,16 +130,16 @@ func (p *PostCommentHandler) ListPostCommentWithParent(ctx *gin.Context) (interf
 		return nil, err
 	}
 
-	commentsWithParent, err := p.PostCommentAssembler.ConvertToWithParentVO(ctx, comments)
+	commentsWithParent, err := p.PostCommentAssembler.ConvertToWithParentVO(ctx.UserContext(), comments)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(commentsWithParent, totalCount, page), nil
 }
 
-func (p *PostCommentHandler) CreatePostComment(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) CreatePostComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentParam *param.AdminComment
-	err := ctx.ShouldBindJSON(&commentParam)
+	err := util.BindAndValidate(ctx, &commentParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -151,7 +151,7 @@ func (p *PostCommentHandler) CreatePostComment(ctx *gin.Context) (interface{}, e
 	if err != nil || user == nil {
 		return nil, err
 	}
-	blogURL, err := p.OptionService.GetBlogBaseURL(ctx)
+	blogURL, err := p.OptionService.GetBlogBaseURL(ctx.UserContext())
 	if err != nil {
 		return nil, err
 	}
@@ -165,20 +165,20 @@ func (p *PostCommentHandler) CreatePostComment(ctx *gin.Context) (interface{}, e
 		AllowNotification: true,
 		CommentType:       consts.CommentTypePost,
 	}
-	comment, err := p.PostCommentService.CreateBy(ctx, &commonParam)
+	comment, err := p.PostCommentService.CreateBy(ctx.UserContext(), &commonParam)
 	if err != nil {
 		return nil, err
 	}
-	return p.PostCommentAssembler.ConvertToDTO(ctx, comment)
+	return p.PostCommentAssembler.ConvertToDTO(ctx.UserContext(), comment)
 }
 
-func (p *PostCommentHandler) UpdatePostComment(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) UpdatePostComment(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
 	}
 	var commentParam *param.Comment
-	err = ctx.ShouldBindJSON(&commentParam)
+	err = util.BindAndValidate(ctx, &commentParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -192,15 +192,15 @@ func (p *PostCommentHandler) UpdatePostComment(ctx *gin.Context) (interface{}, e
 			return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("url is not available")
 		}
 	}
-	comment, err := p.PostCommentService.UpdateBy(ctx, commentID, commentParam)
+	comment, err := p.PostCommentService.UpdateBy(ctx.UserContext(), commentID, commentParam)
 	if err != nil {
 		return nil, err
 	}
 
-	return p.PostCommentAssembler.ConvertToDTO(ctx, comment)
+	return p.PostCommentAssembler.ConvertToDTO(ctx.UserContext(), comment)
 }
 
-func (p *PostCommentHandler) UpdatePostCommentStatus(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) UpdatePostCommentStatus(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
@@ -213,10 +213,10 @@ func (p *PostCommentHandler) UpdatePostCommentStatus(ctx *gin.Context) (interfac
 	if err != nil {
 		return nil, err
 	}
-	return p.PostCommentService.UpdateStatus(ctx, commentID, status)
+	return p.PostCommentService.UpdateStatus(ctx.UserContext(), commentID, status)
 }
 
-func (p *PostCommentHandler) UpdatePostCommentStatusBatch(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) UpdatePostCommentStatusBatch(ctx *fiber.Ctx) (interface{}, error) {
 	strStatus, err := util.ParamString(ctx, "status")
 	if err != nil {
 		return nil, err
@@ -227,30 +227,31 @@ func (p *PostCommentHandler) UpdatePostCommentStatusBatch(ctx *gin.Context) (int
 	}
 
 	ids := make([]int32, 0)
-	err = ctx.ShouldBindJSON(&ids)
+	err = util.BindAndValidate(ctx, &ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}
-	comments, err := p.PostCommentService.UpdateStatusBatch(ctx, ids, status)
+	comments, err := p.PostCommentService.UpdateStatusBatch(ctx.UserContext(), ids, status)
 	if err != nil {
 		return nil, err
 	}
-	return p.PostCommentAssembler.ConvertToDTOList(ctx, comments)
+	return p.PostCommentAssembler.ConvertToDTOList(ctx.UserContext(), comments)
 }
 
-func (p *PostCommentHandler) DeletePostComment(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) DeletePostComment(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
 	}
-	return nil, p.PostCommentService.Delete(ctx, commentID)
+	return nil, p.PostCommentService.Delete(ctx.UserContext(), commentID)
 }
 
-func (p *PostCommentHandler) DeletePostCommentBatch(ctx *gin.Context) (interface{}, error) {
+func (p *PostCommentHandler) DeletePostCommentBatch(ctx *fiber.Ctx) (interface{}, error) {
 	ids := make([]int32, 0)
-	err := ctx.ShouldBindJSON(&ids)
+	err := util.BindAndValidate(ctx, &ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}
-	return nil, p.PostCommentService.DeleteBatch(ctx, ids)
+	return nil, p.PostCommentService.DeleteBatch(ctx.UserContext(), ids)
 }
+

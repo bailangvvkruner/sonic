@@ -3,10 +3,10 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
-	"github.com/go-sonic/sonic/handler/binding"
+
 	"github.com/go-sonic/sonic/handler/trans"
 	"github.com/go-sonic/sonic/model/dto"
 	"github.com/go-sonic/sonic/model/param"
@@ -25,27 +25,27 @@ func NewJournalHandler(journalService service.JournalService) *JournalHandler {
 	}
 }
 
-func (j *JournalHandler) ListJournal(ctx *gin.Context) (interface{}, error) {
+func (j *JournalHandler) ListJournal(ctx *fiber.Ctx) (interface{}, error) {
 	var journalQuery param.JournalQuery
-	err := ctx.ShouldBindWith(&journalQuery, binding.CustomFormBinding)
+	err := ctx.QueryParser(&journalQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
 	journalQuery.Sort = &param.Sort{
 		Fields: []string{"createTime,desc"},
 	}
-	journals, totalCount, err := j.JournalService.ListJournal(ctx, journalQuery)
+	journals, totalCount, err := j.JournalService.ListJournal(ctx.UserContext(), journalQuery)
 	if err != nil {
 		return nil, err
 	}
-	journalDTOs, err := j.JournalService.ConvertToWithCommentDTOList(ctx, journals)
+	journalDTOs, err := j.JournalService.ConvertToWithCommentDTOList(ctx.UserContext(), journals)
 	if err != nil {
 		return nil, err
 	}
 	return dto.NewPage(journalDTOs, totalCount, journalQuery.Page), nil
 }
 
-func (j *JournalHandler) ListLatestJournal(ctx *gin.Context) (interface{}, error) {
+func (j *JournalHandler) ListLatestJournal(ctx *fiber.Ctx) (interface{}, error) {
 	top, err := util.MustGetQueryInt(ctx, "top")
 	if err != nil {
 		top = 10
@@ -54,16 +54,16 @@ func (j *JournalHandler) ListLatestJournal(ctx *gin.Context) (interface{}, error
 		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
 		Page: param.Page{PageNum: 0, PageSize: top},
 	}
-	journals, _, err := j.JournalService.ListJournal(ctx, journalQuery)
+	journals, _, err := j.JournalService.ListJournal(ctx.UserContext(), journalQuery)
 	if err != nil {
 		return nil, err
 	}
-	return j.JournalService.ConvertToWithCommentDTOList(ctx, journals)
+	return j.JournalService.ConvertToWithCommentDTOList(ctx.UserContext(), journals)
 }
 
-func (j *JournalHandler) CreateJournal(ctx *gin.Context) (interface{}, error) {
+func (j *JournalHandler) CreateJournal(ctx *fiber.Ctx) (interface{}, error) {
 	var journalParam param.Journal
-	err := ctx.ShouldBindJSON(&journalParam)
+	err := util.BindAndValidate(ctx, &journalParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -74,16 +74,16 @@ func (j *JournalHandler) CreateJournal(ctx *gin.Context) (interface{}, error) {
 	if journalParam.Content == "" {
 		journalParam.Content = journalParam.SourceContent
 	}
-	journal, err := j.JournalService.Create(ctx, &journalParam)
+	journal, err := j.JournalService.Create(ctx.UserContext(), &journalParam)
 	if err != nil {
 		return nil, err
 	}
 	return j.JournalService.ConvertToDTO(journal), nil
 }
 
-func (j *JournalHandler) UpdateJournal(ctx *gin.Context) (interface{}, error) {
+func (j *JournalHandler) UpdateJournal(ctx *fiber.Ctx) (interface{}, error) {
 	var journalParam param.Journal
-	err := ctx.ShouldBindJSON(&journalParam)
+	err := util.BindAndValidate(ctx, &journalParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -96,13 +96,14 @@ func (j *JournalHandler) UpdateJournal(ctx *gin.Context) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return j.JournalService.Update(ctx, journalID, &journalParam)
+	return j.JournalService.Update(ctx.UserContext(), journalID, &journalParam)
 }
 
-func (j *JournalHandler) DeleteJournal(ctx *gin.Context) (interface{}, error) {
+func (j *JournalHandler) DeleteJournal(ctx *fiber.Ctx) (interface{}, error) {
 	journalID, err := util.ParamInt32(ctx, "journalID")
 	if err != nil {
 		return nil, err
 	}
-	return nil, j.JournalService.Delete(ctx, journalID)
+	return nil, j.JournalService.Delete(ctx.UserContext(), journalID)
 }
+

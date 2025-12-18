@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/handler/content/model"
@@ -32,20 +32,20 @@ func NewSheetHandler(
 	}
 }
 
-func (s *SheetHandler) SheetBySlug(ctx *gin.Context, model template.Model) (string, error) {
+func (s *SheetHandler) SheetBySlug(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
 	}
-	sheet, err := s.SheetService.GetBySlug(ctx, slug)
+	sheet, err := s.SheetService.GetBySlug(ctx.UserContext(), slug)
 	if err != nil {
 		return "", err
 	}
-	token, _ := ctx.Cookie("authentication")
+	token := ctx.Cookies("authentication")
 	return s.SheetModel.Content(ctx, sheet, token, model)
 }
 
-func (s *SheetHandler) AdminSheetBySlug(ctx *gin.Context, model template.Model) (string, error) {
+func (s *SheetHandler) AdminSheetBySlug(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
@@ -63,7 +63,7 @@ func (s *SheetHandler) AdminSheetBySlug(ctx *gin.Context, model template.Model) 
 		return "", xerr.WithStatus(nil, xerr.StatusBadRequest).WithMsg("token已过期或者不存在")
 	}
 
-	sheet, err := s.SheetService.GetBySlug(ctx, slug)
+	sheet, err := s.SheetService.GetBySlug(ctx.UserContext(), slug)
 	if err != nil {
 		return "", err
 	}
