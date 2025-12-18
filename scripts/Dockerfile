@@ -13,6 +13,7 @@ RUN set -eux \
     # 包含strip命令
     binutils \
     upx \
+    tzdata \
     \
     && git clone -b master --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
     && go mod download \
@@ -46,10 +47,17 @@ FROM busybox:musl as prod
 
 COPY --from=builder /app/ /app/
 
+# RUN set -eux \
+#     && apk add --no-cache --no-scripts --virtual .build-deps \
+#     tzdata \
+#     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+#     && echo "Asia/Shanghai" > /etc/timezone
+
+# Copy timezone files from builder stage
+COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /usr/share/zoneinfo/Asia/Shanghai
+
 RUN set -eux \
-    && apk add --no-cache --no-scripts --virtual .build-deps \
-    tzdata \
-    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo "Asia/Shanghai" > /etc/timezone
 
 VOLUME /sonic
