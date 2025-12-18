@@ -151,7 +151,6 @@ func (s *SheetCommentHandler) CreateSheetComment(ctx *fiber.Ctx) (interface{}, e
 		if errors.As(err, &e) {
 			return nil, xerr.WithStatus(e, xerr.StatusBadRequest).WithMsg(trans.Translate(e))
 		}
-if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
 	user, err := impl.MustGetAuthorizedUser(ctx.UserContext())
