@@ -25,7 +25,7 @@ func (l *LogHandler) PageLatestLog(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		top = 10
 	}
-	logs, _, err := l.LogService.PageLog(ctx.UserContext(), param.Page{PageSize: int(top)}, &param.Sort{Fields: []string{"createTime,desc"}})
+	logs, _, err := l.LogService.PageLog(ctx.UserContext(), param.Pagination{PageSize: int(top)}, &param.Sort{Fields: []string{"createTime,desc"}})
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (l *LogHandler) PageLatestLog(ctx *fiber.Ctx) (interface{}, error) {
 
 func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 	type LogParam struct {
-		param.Page
+		param.Pagination
 		*param.Sort
 	}
 	var logParam LogParam
@@ -51,7 +51,7 @@ func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 			Fields: []string{"createTime,desc"},
 		}
 	}
-	logs, totalCount, err := l.LogService.PageLog(ctx.UserContext(), logParam.Page, logParam.Sort)
+	logs, totalCount, err := l.LogService.PageLog(ctx.UserContext(), logparam.Pagination, logParam.Sort)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 	for _, log := range logs {
 		logDTOs = append(logDTOs, l.LogService.ConvertToDTO(log))
 	}
-	return dto.NewPage(logDTOs, totalCount, logParam.Page), nil
+	return dto.NewPage(logDTOs, totalCount, logparam.Pagination), nil
 }
 
 func (l *LogHandler) ClearLog(ctx *fiber.Ctx) (interface{}, error) {

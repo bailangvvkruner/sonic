@@ -52,7 +52,7 @@ func (j *JournalCommentHandler) ListJournalComment(ctx *fiber.Ctx) (interface{},
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commentDTOs, totalCount, commentQuery.Page), nil
+	return dto.NewPage(commentDTOs, totalCount, commentQuery.Pagination), nil
 }
 
 func (j *JournalCommentHandler) ListJournalCommentLatest(ctx *fiber.Ctx) (interface{}, error) {
@@ -62,7 +62,7 @@ func (j *JournalCommentHandler) ListJournalCommentLatest(ctx *fiber.Ctx) (interf
 	}
 	commentQuery := param.CommentQuery{
 		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
-		Page: param.Page{PageNum: 0, PageSize: int(top)},
+		Page: param.Pagination{PageNum: 0, PageSize: int(top)},
 	}
 	comments, _, err := j.JournalCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypeSheet)
 	if err != nil {
@@ -84,7 +84,7 @@ func (j *JournalCommentHandler) ListJournalCommentAsTree(ctx *fiber.Ctx) (interf
 	if err != nil {
 		return nil, err
 	}
-	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
+	page := param.Pagination{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
 	allComments, err := j.JournalCommentService.GetByContentID(ctx.UserContext(), journalID, consts.CommentTypeJournal, &param.Sort{Fields: []string{"createTime,desc"}})
 	if err != nil {
@@ -113,7 +113,7 @@ func (j *JournalCommentHandler) ListJournalCommentWithParent(ctx *fiber.Ctx) (in
 		return nil, err
 	}
 
-	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
+	page := param.Pagination{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
 	comments, totalCount, err := j.JournalCommentService.Page(ctx.UserContext(), param.CommentQuery{
 		ContentID: &journalID,

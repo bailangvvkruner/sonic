@@ -1,6 +1,6 @@
 package param
 
-type Page struct {
+type Pagination struct {
 	PageNum  int `json:"page" form:"page"`
 	PageSize int `json:"size" form:"size"`
 }

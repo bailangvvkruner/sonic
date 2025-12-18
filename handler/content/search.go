@@ -63,7 +63,7 @@ func (s *SearchHandler) search(ctx *fiber.Ctx, pageNum int, model template.Model
 		sort = s.OptionService.GetPostSort(ctx.UserContext())
 	}
 	defaultPageSize := s.OptionService.GetIndexPageSize(ctx.UserContext())
-	page := param.Page{
+	page := param.Pagination{
 		PageNum:  pageNum,
 		PageSize: defaultPageSize,
 	}

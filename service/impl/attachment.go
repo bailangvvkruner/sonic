@@ -97,13 +97,13 @@ func (a *attachmentServiceImpl) Page(ctx context.Context, queryParam *param.Atta
 	if queryParam.Keyword != "" {
 		attachmentDo = attachmentDo.Where(attachmentDAL.Name.Like(queryParam.Keyword))
 	}
-	if queryParam.PageNum >= 0 && queryParam.PageSize >= 0 {
-		if queryParam.PageSize > 50 {
-			queryParam.PageSize = 50
+	if queryparam.PageNum >= 0 && queryparam.PageSize >= 0 {
+		if queryparam.PageSize > 50 {
+			queryparam.PageSize = 50
 		}
 	} else {
-		queryParam.PageSize = 10
-		queryParam.PageNum = 0
+		queryparam.PageSize = 10
+		queryparam.PageNum = 0
 	}
 	if queryParam.Keyword != "" {
 		attachmentDo = attachmentDo.Where(attachmentDAL.Name.Like(queryParam.Keyword))
@@ -114,7 +114,7 @@ func (a *attachmentServiceImpl) Page(ctx context.Context, queryParam *param.Atta
 	if queryParam.MediaType != "" {
 		attachmentDo = attachmentDo.Where(attachmentDAL.MediaType.Eq(queryParam.MediaType))
 	}
-	attachments, totalCount, err := attachmentDo.FindByPage(queryParam.PageNum*queryParam.PageSize, queryParam.PageSize)
+	attachments, totalCount, err := attachmentDo.FindByPage(queryparam.PageNum*queryparam.PageSize, queryparam.PageSize)
 	if err != nil {
 		return nil, 0, WrapDBErr(err)
 	}
@@ -143,9 +143,9 @@ func (a *attachmentServiceImpl) Upload(ctx context.Context, fileHeader *multipar
 
 	record, err := attachmentDAL.WithContext(ctx).Where(attachmentDAL.Path.Eq(attachmentDTO.Path)).Take()
 	if record != nil && err == nil {
-		return nil, xerr.BadParam.New("附件路径为 " + attachmentDTO.Path + " 已经存在").
+		return nil, xerr.BadParam.New("附件路径�?" + attachmentDTO.Path + " 已经存在").
 			WithStatus(xerr.StatusBadRequest).
-			WithMsg("附件路径为 " + attachmentDTO.Path + " 已经存在")
+			WithMsg("附件路径�?" + attachmentDTO.Path + " 已经存在")
 	}
 	if !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, WrapDBErr(err)

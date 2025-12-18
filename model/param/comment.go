@@ -3,7 +3,7 @@ package param
 import "github.com/go-sonic/sonic/consts"
 
 type CommentQuery struct {
-	Page
+	Pagination
 	*Sort
 	ContentID     *int32
 	Keyword       *string               `json:"keyword" form:"keyword"`

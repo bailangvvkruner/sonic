@@ -12,7 +12,7 @@ import (
 )
 
 func ZipFile(dst string, srcs ...string) (err error) {
-	// 创建准备写入的文件
+	// 创建准备写入的文�?
 	fw, err := os.Create(dst)
 	if err != nil {
 		return xerr.NoType.Wrap(err).WithMsg("create zip file err")
@@ -22,7 +22,7 @@ func ZipFile(dst string, srcs ...string) (err error) {
 			err = xerr.NoType.Wrap(err).WithMsg("close file")
 		}
 	}()
-	// 通过 fw 来创建 zip.Write
+	// 通过 fw 来创�?zip.Write
 	zw := zip.NewWriter(fw)
 	defer func() {
 		if err = zw.Close(); err != nil {
@@ -37,7 +37,7 @@ func ZipFile(dst string, srcs ...string) (err error) {
 				return errBack
 			}
 
-			// 通过文件信息，创建 zip 的文件信息
+			// 通过文件信息，创�?zip 的文件信�?
 			fh, err := zip.FileInfoHeader(fi)
 			if err != nil {
 				return err
@@ -47,7 +47,7 @@ func ZipFile(dst string, srcs ...string) (err error) {
 			} else {
 				fh.Name = filepath.Join(filepath.Base(src), strings.TrimPrefix(path, src))
 			}
-			// 替换文件信息中的文件名
+			// 替换文件信息中的文件�?
 			fh.Name = strings.TrimPrefix(fh.Name, string(filepath.Separator))
 
 			// 这步开始没有加，会发现解压的时候说它不是个目录
@@ -55,7 +55,7 @@ func ZipFile(dst string, srcs ...string) (err error) {
 				fh.Name += "/"
 			}
 
-			// 写入文件信息，并返回一个 Write 结构
+			// 写入文件信息，并返回一�?Write 结构
 			w, err := zw.CreateHeader(fh)
 			if err != nil {
 				return err
@@ -74,12 +74,12 @@ func ZipFile(dst string, srcs ...string) (err error) {
 			}
 			defer fr.Close()
 
-			// 将打开的文件 Copy 到 w
+			// 将打开的文�?Copy �?w
 			_, err = io.Copy(w, fr)
 			if err != nil {
 				return err
 			}
-			// 输出压缩的内容
+			// 输出压缩的内�?
 
 			return err
 		})

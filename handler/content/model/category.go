@@ -80,7 +80,7 @@ func (c *CategoryModel) CategoryDetail(ctx context.Context, model template.Model
 	pageSize := c.OptionService.GetOrByDefault(ctx, property.ArchivePageSize).(int)
 	sort := c.OptionService.GetPostSort(ctx)
 	postQuery := param.PostQuery{
-		Page: param.Page{
+		Page: param.Pagination{
 			PageNum:  page,
 			PageSize: pageSize,
 		},
@@ -99,7 +99,7 @@ func (c *CategoryModel) CategoryDetail(ctx context.Context, model template.Model
 	if err != nil {
 		return "", err
 	}
-	postPage := dto.NewPage(postVOs, totalPage, param.Page{
+	postPage := dto.NewPage(postVOs, totalPage, param.Pagination{
 		PageNum:  page,
 		PageSize: pageSize,
 	})

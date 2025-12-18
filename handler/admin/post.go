@@ -46,7 +46,7 @@ func (p *PostHandler) ListPosts(ctx *fiber.Ctx) (interface{}, error) {
 	}
 	if postQuery.More == nil || *postQuery.More {
 		postVOs, err := p.PostAssembler.ConvertToListVO(ctx.UserContext(), posts)
-		return dto.NewPage(postVOs, totalCount, postQuery.Page), err
+		return dto.NewPage(postVOs, totalCount, postQuery.Pagination), err
 	}
 	postDTOs := make([]*dto.Post, 0)
 	for _, post := range posts {
@@ -56,7 +56,7 @@ func (p *PostHandler) ListPosts(ctx *fiber.Ctx) (interface{}, error) {
 		}
 		postDTOs = append(postDTOs, postDTO)
 	}
-	return dto.NewPage(postDTOs, totalCount, postQuery.Page), nil
+	return dto.NewPage(postDTOs, totalCount, postQuery.Pagination), nil
 }
 
 func (p *PostHandler) ListLatestPosts(ctx *fiber.Ctx) (interface{}, error) {
@@ -65,7 +65,7 @@ func (p *PostHandler) ListLatestPosts(ctx *fiber.Ctx) (interface{}, error) {
 		top = 10
 	}
 	postQuery := param.PostQuery{
-		Page: param.Page{
+		Page: param.Pagination{
 			PageSize: int(top),
 			PageNum:  0,
 		},
@@ -119,7 +119,7 @@ func (p *PostHandler) ListPostsByStatus(ctx *fiber.Ctx) (interface{}, error) {
 	}
 	if postQuery.More == nil {
 		postVOs, err := p.PostAssembler.ConvertToListVO(ctx.UserContext(), posts)
-		return dto.NewPage(postVOs, totalCount, postQuery.Page), err
+		return dto.NewPage(postVOs, totalCount, postQuery.Pagination), err
 	}
 
 	postDTOs := make([]*dto.Post, 0)
@@ -131,7 +131,7 @@ func (p *PostHandler) ListPostsByStatus(ctx *fiber.Ctx) (interface{}, error) {
 		postDTOs = append(postDTOs, postDTO)
 	}
 
-	return dto.NewPage(postDTOs, totalCount, postQuery.Page), nil
+	return dto.NewPage(postDTOs, totalCount, postQuery.Pagination), nil
 }
 
 func (p *PostHandler) GetByPostID(ctx *fiber.Ctx) (interface{}, error) {

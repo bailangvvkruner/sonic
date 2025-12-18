@@ -31,7 +31,7 @@ type PostContent struct {
 }
 
 type PostQuery struct {
-	Page
+	Pagination
 	*Sort
 	Keyword      *string              `json:"keyword" form:"keyword"`
 	Statuses     []*consts.PostStatus `json:"statuses" form:"statuses"`

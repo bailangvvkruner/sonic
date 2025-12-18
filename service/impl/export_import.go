@@ -230,7 +230,7 @@ func (e *exportImport) CreateByMarkdown(ctx context.Context, filename string, re
 
 func (e *exportImport) ExportMarkdown(ctx context.Context, needFrontMatter bool) (string, error) {
 	posts, _, err := e.PostService.Page(ctx, param.PostQuery{
-		Page: param.Page{
+		Page: param.Pagination{
 			PageNum:  0,
 			PageSize: 999999,
 		},

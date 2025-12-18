@@ -9,7 +9,7 @@ import (
 )
 
 type LogService interface {
-	PageLog(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Log, int64, error)
+	PageLog(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Log, int64, error)
 	ConvertToDTO(log *entity.Log) *dto.Log
 	Clear(ctx context.Context) error
 }

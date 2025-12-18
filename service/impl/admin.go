@@ -50,7 +50,7 @@ func NewAdminService(userService service.UserService, cache cache.Cache, config 
 }
 
 func (a *adminServiceImpl) Authenticate(ctx context.Context, loginParam param.LoginParam) (*entity.User, error) {
-	missMatchTip := "用户名或密码不正确"
+	missMatchTip := "用户名或密码不正�?
 
 	var user *entity.User
 	err := util.Validate.Var(loginParam.Username, "email")
@@ -86,11 +86,11 @@ func (a *adminServiceImpl) Auth(ctx context.Context, loginParam param.LoginParam
 	}
 	if a.TwoFactorTOTPMFA.UseMFA(user.MfaType) {
 		if len(loginParam.AuthCode) != 6 {
-			return nil, xerr.WithMsg(nil, "请输入6位两步验证码").WithStatus(xerr.StatusBadRequest)
+			return nil, xerr.WithMsg(nil, "请输�?位两步验证码").WithStatus(xerr.StatusBadRequest)
 		}
 		mfaAuth := a.TwoFactorTOTPMFA.ValidateTFACode(user.MfaKey, loginParam.AuthCode)
 		if !mfaAuth {
-			return nil, xerr.WithStatus(nil, xerr.StatusBadRequest).WithMsg("两步验证码验证错误")
+			return nil, xerr.WithStatus(nil, xerr.StatusBadRequest).WithMsg("两步验证码验证错�?)
 		}
 	}
 	a.Event.Publish(ctx, &event.LogEvent{
@@ -105,7 +105,7 @@ func (a *adminServiceImpl) Auth(ctx context.Context, loginParam param.LoginParam
 func (a *adminServiceImpl) ClearToken(ctx context.Context) error {
 	user, ok := GetAuthorizedUser(ctx)
 	if !ok || user == nil {
-		return xerr.Forbidden.New("").WithStatus(xerr.StatusForbidden).WithMsg("未登录")
+		return xerr.Forbidden.New("").WithStatus(xerr.StatusForbidden).WithMsg("未登�?)
 	}
 	accessToken, _ := a.Cache.Get(cache.BuildAccessTokenKey(user.ID))
 	refreshToken, _ := a.Cache.Get(cache.BuildRefreshTokenKey(user.ID))
@@ -127,26 +127,26 @@ func (a *adminServiceImpl) ClearToken(ctx context.Context) error {
 func (a *adminServiceImpl) SendResetPasswordCode(ctx context.Context, resetParam param.ResetPasswordParam) error {
 	user, ok := GetAuthorizedUser(ctx)
 	if !ok || user == nil {
-		return xerr.Forbidden.New("").WithStatus(xerr.StatusForbidden).WithMsg("未登录")
+		return xerr.Forbidden.New("").WithStatus(xerr.StatusForbidden).WithMsg("未登�?)
 	}
 	_, ok = a.Cache.Get(cache.BuildCodeCacheKey(user.ID))
 	if ok {
-		return xerr.NoType.New("").WithMsg("已经获取过验证码，不能重复获取").WithStatus(xerr.StatusInternalServerError)
+		return xerr.NoType.New("").WithMsg("已经获取过验证码，不能重复获�?).WithStatus(xerr.StatusInternalServerError)
 	}
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	code := fmt.Sprintf("%06v", rnd.Int31n(1000000))
 
-	log.CtxInfof(ctx, "重置密码验证码: %v", code)
+	log.CtxInfof(ctx, "重置密码验证�? %v", code)
 	a.Cache.Set(cache.BuildCodeCacheKey(user.ID), code, consts.CodeValidDuration)
 	emailEnabled, err := a.OptionService.GetOrByDefaultWithErr(ctx, property.EmailIsEnabled, false)
 	if err != nil {
 		return err
 	}
 	if !emailEnabled.(bool) {
-		return xerr.NoType.New("未启用 SMTP 服务").WithMsg("未启用 SMTP 服务，无法发送邮件，但是你可以通过系统日志找到验证码")
+		return xerr.NoType.New("未启�?SMTP 服务").WithMsg("未启�?SMTP 服务，无法发送邮件，但是你可以通过系统日志找到验证�?)
 	}
 	content := "您正在进行密码重置操作，如不是本人操作，请尽快做好相应措施。密码重置验证码如下（五分钟有效）：\n" + code
-	return a.EmailService.SendTextEmail(ctx, resetParam.Email, "找回密码验证码", content)
+	return a.EmailService.SendTextEmail(ctx, resetParam.Email, "找回密码验证�?, content)
 }
 
 func (a *adminServiceImpl) buildAuthToken(user *entity.User) *dto.AuthTokenDTO {

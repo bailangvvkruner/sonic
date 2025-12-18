@@ -66,7 +66,7 @@ func (s *SheetCommentHandler) ListSheetComment(ctx *fiber.Ctx) (interface{}, err
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commentDTOs, totalCount, commentQuery.Page), nil
+	return dto.NewPage(commentDTOs, totalCount, commentQuery.Pagination), nil
 }
 
 func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *fiber.Ctx) (interface{}, error) {
@@ -76,7 +76,7 @@ func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *fiber.Ctx) (interface{
 	}
 	commentQuery := param.CommentQuery{
 		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
-		Page: param.Page{PageNum: 0, PageSize: int(top)},
+		Page: param.Pagination{PageNum: 0, PageSize: int(top)},
 	}
 	comments, _, err := s.SheetCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypeSheet)
 	if err != nil {
@@ -98,7 +98,7 @@ func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *fiber.Ctx) (interface{
 	if err != nil {
 		return nil, err
 	}
-	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
+	page := param.Pagination{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
 	allComments, err := s.SheetCommentService.GetByContentID(ctx.UserContext(), postID, consts.CommentTypeSheet, &param.Sort{Fields: []string{"createTime,desc"}})
 	if err != nil {
@@ -125,7 +125,7 @@ func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *fiber.Ctx) (interf
 	if err != nil {
 		return nil, err
 	}
-	page := param.Page{PageSize: pageSize.(int), PageNum: int(pageNum)}
+	page := param.Pagination{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
 	comments, totalCount, err := s.SheetCommentService.Page(ctx.UserContext(), param.CommentQuery{
 		ContentID: &postID,

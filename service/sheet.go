@@ -10,7 +10,7 @@ import (
 
 type SheetService interface {
 	BasePostService
-	Page(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Post, int64, error)
+	Page(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Post, int64, error)
 	Create(ctx context.Context, sheetParam *param.Sheet) (*entity.Post, error)
 	Update(ctx context.Context, sheetID int32, sheetParam *param.Sheet) (*entity.Post, error)
 	Preview(ctx context.Context, sheetID int32) (string, error)

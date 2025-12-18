@@ -68,7 +68,7 @@ func (p *PostHandler) ListTopComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commenVOs, totalCount, commentQuery.Page), nil
+	return dto.NewPage(commenVOs, totalCount, commentQuery.Pagination), nil
 }
 
 func (p *PostHandler) ListChildren(ctx *fiber.Ctx) (interface{}, error) {
@@ -116,11 +116,11 @@ func (p *PostHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	_ = p.PostCommentAssembler.ClearSensitiveField(ctx.UserContext(), allComments)
-	commentVOs, total, err := p.PostCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, commentQuery.Page)
+	commentVOs, total, err := p.PostCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, commentQuery.Pagination)
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commentVOs, total, commentQuery.Page), nil
+	return dto.NewPage(commentVOs, total, commentQuery.Pagination), nil
 }
 
 func (p *PostHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
@@ -155,7 +155,7 @@ func (p *PostHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(result, total, commentQuery.Page), nil
+	return dto.NewPage(result, total, commentQuery.Pagination), nil
 }
 
 func (p *PostHandler) CreateComment(ctx *fiber.Ctx) (interface{}, error) {

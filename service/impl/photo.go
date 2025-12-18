@@ -19,7 +19,7 @@ func NewPhotoService() service.PhotoService {
 	return &photoServiceImpl{}
 }
 
-func (p *photoServiceImpl) Page(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Photo, int64, error) {
+func (p *photoServiceImpl) Page(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Photo, int64, error) {
 	if page.PageNum < 0 || page.PageSize <= 0 || page.PageSize > 100 {
 		return nil, 0, xerr.BadParam.New("").WithStatus(xerr.StatusBadRequest).WithMsg("Paging parameter error")
 	}

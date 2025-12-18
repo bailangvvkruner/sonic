@@ -45,7 +45,7 @@ func (s *SheetHandler) GetSheetByID(ctx *fiber.Ctx) (interface{}, error) {
 
 func (s *SheetHandler) ListSheet(ctx *fiber.Ctx) (interface{}, error) {
 	type SheetParam struct {
-		param.Page
+		param.Pagination
 		Sort string `json:"sort"`
 	}
 	var sheetParam SheetParam
@@ -53,7 +53,7 @@ func (s *SheetHandler) ListSheet(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	sheets, totalCount, err := s.SheetService.Page(ctx.UserContext(), sheetParam.Page, &param.Sort{Fields: []string{"createTime,desc"}})
+	sheets, totalCount, err := s.SheetService.Page(ctx.UserContext(), sheetparam.Pagination, &param.Sort{Fields: []string{"createTime,desc"}})
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,7 @@ func (s *SheetHandler) ListSheet(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(sheetVOs, totalCount, sheetParam.Page), nil
+	return dto.NewPage(sheetVOs, totalCount, sheetparam.Pagination), nil
 }
 
 func (s *SheetHandler) IndependentSheets(ctx *fiber.Ctx) (interface{}, error) {

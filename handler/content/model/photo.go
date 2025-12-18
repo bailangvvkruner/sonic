@@ -30,7 +30,7 @@ type PhotoModel struct {
 func (p *PhotoModel) Photos(ctx context.Context, model template.Model, page int) (string, error) {
 	pageSize := p.OptionService.GetOrByDefault(ctx, property.PhotoPageSize).(int)
 	photos, total, err := p.PhotoService.Page(ctx,
-		param.Page{
+		param.Pagination{
 			PageNum:  page,
 			PageSize: pageSize,
 		},
@@ -41,7 +41,7 @@ func (p *PhotoModel) Photos(ctx context.Context, model template.Model, page int)
 		return "", err
 	}
 	photoDTOs := p.PhotoService.ConvertToDTOs(ctx, photos)
-	photoPage := dto.NewPage(photoDTOs, total, param.Page{PageNum: page, PageSize: pageSize})
+	photoPage := dto.NewPage(photoDTOs, total, param.Pagination{PageNum: page, PageSize: pageSize})
 	model["is_photos"] = true
 	model["photos"] = photoPage
 	model["meta_keywords"] = p.OptionService.GetOrByDefault(ctx, property.SeoKeywords)

@@ -7,7 +7,7 @@ type Option struct {
 	Value string `json:"value" form:"value"`
 }
 type OptionQuery struct {
-	Page
+	Pagination
 	Keyword string            `json:"keyword" form:"keyword"`
 	Type    consts.OptionType `json:"type" form:"type"`
 }

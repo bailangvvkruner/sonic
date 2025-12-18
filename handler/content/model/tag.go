@@ -54,7 +54,7 @@ func (t *TagModel) TagPosts(ctx context.Context, model template.Model, slug stri
 	}
 	pageSize := t.OptionService.GetOrByDefault(ctx, property.ArchivePageSize).(int)
 	posts, totalPage, err := t.PostTagService.PagePost(ctx, param.PostQuery{
-		Page: param.Page{
+		Page: param.Pagination{
 			PageNum:  page,
 			PageSize: pageSize,
 		},
@@ -71,7 +71,7 @@ func (t *TagModel) TagPosts(ctx context.Context, model template.Model, slug stri
 	if err != nil {
 		return "", err
 	}
-	postPage := dto.NewPage(postVOs, totalPage, param.Page{
+	postPage := dto.NewPage(postVOs, totalPage, param.Pagination{
 		PageNum:  page,
 		PageSize: pageSize,
 	})

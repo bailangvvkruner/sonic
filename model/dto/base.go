@@ -28,7 +28,7 @@ type Page struct {
 	HasContent  bool        `json:"hasContent"`
 }
 
-func NewPage(content interface{}, totalCount int64, page param.Page) *Page {
+func NewPage(content interface{}, totalCount int64, page param.Pagination) *Page {
 	var contentLen int
 	r := reflect.ValueOf(content)
 

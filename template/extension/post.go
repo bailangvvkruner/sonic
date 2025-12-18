@@ -46,7 +46,7 @@ func (p *postExtension) addListLatestPost() {
 	listLatestPostFunc := func(top int) ([]*vo.Post, error) {
 		ctx := context.Background()
 		posts, _, err := p.PostService.Page(ctx, param.PostQuery{
-			Page: param.Page{
+			Page: param.Pagination{
 				PageNum:  0,
 				PageSize: top,
 			},
@@ -67,7 +67,7 @@ func (p *postExtension) addListMostPopularPost() {
 	listMostPopularPost := func(top int) ([]*vo.Post, error) {
 		ctx := context.Background()
 		posts, _, err := p.PostService.Page(ctx, param.PostQuery{
-			Page: param.Page{
+			Page: param.Pagination{
 				PageNum:  0,
 				PageSize: top,
 			},

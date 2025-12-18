@@ -9,7 +9,7 @@ import (
 )
 
 type JournalService interface {
-	Page(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Journal, int64, error)
+	Page(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Journal, int64, error)
 	ListJournal(ctx context.Context, journalQuery param.JournalQuery) ([]*entity.Journal, int64, error)
 	ConvertToDTO(journal *entity.Journal) *dto.Journal
 	ConvertToWithCommentDTOList(ctx context.Context, journals []*entity.Journal) ([]*dto.JournalWithComment, error)

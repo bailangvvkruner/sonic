@@ -66,13 +66,13 @@ func (s *Server) RegisterRouters() {
 					attachmentRouter := authRouter.Group("/attachments")
 					attachmentRouter.Post("/upload", s.wrapHandler(s.AttachmentHandler.UploadAttachment))
 					attachmentRouter.Post("/uploads", s.wrapHandler(s.AttachmentHandler.UploadAttachments))
+					attachmentRouter.Get("/media_types", s.wrapHandler(s.AttachmentHandler.GetAllMediaType))
+					attachmentRouter.Get("types", s.wrapHandler(s.AttachmentHandler.GetAllTypes))
 					attachmentRouter.Delete("/:id", s.wrapHandler(s.AttachmentHandler.DeleteAttachment))
 					attachmentRouter.Delete("", s.wrapHandler(s.AttachmentHandler.DeleteAttachmentInBatch))
 					attachmentRouter.Get("", s.wrapHandler(s.AttachmentHandler.QueryAttachment))
 					attachmentRouter.Get("/:id", s.wrapHandler(s.AttachmentHandler.GetAttachmentByID))
 					attachmentRouter.Put("/:id", s.wrapHandler(s.AttachmentHandler.UpdateAttachment))
-					attachmentRouter.Get("/media_types", s.wrapHandler(s.AttachmentHandler.GetAllMediaType))
-					attachmentRouter.Get("types", s.wrapHandler(s.AttachmentHandler.GetAllTypes))
 				}
 				{
 					backupRouter := authRouter.Group("/backups")
@@ -150,14 +150,6 @@ func (s *Server) RegisterRouters() {
 				}
 				{
 					sheetRouter := authRouter.Group("/sheets")
-					sheetRouter.Get("/:sheetID", s.wrapHandler(s.SheetHandler.GetSheetByID))
-					sheetRouter.Get("", s.wrapHandler(s.SheetHandler.ListSheet))
-					sheetRouter.Post("", s.wrapHandler(s.SheetHandler.CreateSheet))
-					sheetRouter.Put("/:sheetID", s.wrapHandler(s.SheetHandler.UpdateSheet))
-					sheetRouter.Put("/:sheetID/:status", s.wrapHandler(s.SheetHandler.UpdateSheetStatus))
-					sheetRouter.Put("/:sheetID/status/draft/content", s.wrapHandler(s.SheetHandler.UpdateSheetDraft))
-					sheetRouter.Delete("/:sheetID", s.wrapHandler(s.SheetHandler.DeleteSheet))
-					sheetRouter.Get("/preview/:sheetID", s.SheetHandler.PreviewSheet)
 					sheetRouter.Get("/independent", s.wrapHandler(s.SheetHandler.IndependentSheets))
 					{
 						sheetCommentRouter := sheetRouter.Group("/comments")
@@ -171,6 +163,14 @@ func (s *Server) RegisterRouters() {
 						sheetCommentRouter.Delete("/:commentID", s.wrapHandler(s.SheetCommentHandler.DeleteSheetComment))
 						sheetCommentRouter.Delete("", s.wrapHandler(s.SheetCommentHandler.DeleteSheetCommentBatch))
 					}
+					sheetRouter.Get("/:sheetID", s.wrapHandler(s.SheetHandler.GetSheetByID))
+					sheetRouter.Get("", s.wrapHandler(s.SheetHandler.ListSheet))
+					sheetRouter.Post("", s.wrapHandler(s.SheetHandler.CreateSheet))
+					sheetRouter.Put("/:sheetID", s.wrapHandler(s.SheetHandler.UpdateSheet))
+					sheetRouter.Put("/:sheetID/:status", s.wrapHandler(s.SheetHandler.UpdateSheetStatus))
+					sheetRouter.Put("/:sheetID/status/draft/content", s.wrapHandler(s.SheetHandler.UpdateSheetDraft))
+					sheetRouter.Delete("/:sheetID", s.wrapHandler(s.SheetHandler.DeleteSheet))
+					sheetRouter.Get("/preview/:sheetID", s.SheetHandler.PreviewSheet)
 				}
 				{
 					journalRouter := authRouter.Group("/journals")
@@ -198,11 +198,11 @@ func (s *Server) RegisterRouters() {
 				{
 					linkRouter := authRouter.Group("/links")
 					linkRouter.Get("", s.wrapHandler(s.LinkHandler.ListLinks))
+					linkRouter.Get("/teams", s.wrapHandler(s.LinkHandler.ListLinkTeams))
 					linkRouter.Get("/:id", s.wrapHandler(s.LinkHandler.GetLinkByID))
 					linkRouter.Post("", s.wrapHandler(s.LinkHandler.CreateLink))
 					linkRouter.Put("/:id", s.wrapHandler(s.LinkHandler.UpdateLink))
 					linkRouter.Delete("/:id", s.wrapHandler(s.LinkHandler.DeleteLink))
-					linkRouter.Get("/teams", s.wrapHandler(s.LinkHandler.ListLinkTeams))
 				}
 				{
 					menuRouter := authRouter.Group("/menus")
@@ -230,12 +230,12 @@ func (s *Server) RegisterRouters() {
 					photoRouter := authRouter.Group("/photos")
 					photoRouter.Get("/latest", s.wrapHandler(s.PhotoHandler.ListPhoto))
 					photoRouter.Get("", s.wrapHandler(s.PhotoHandler.PagePhotos))
+					photoRouter.Get("/teams", s.wrapHandler(s.PhotoHandler.ListPhotoTeams))
 					photoRouter.Get("/:id", s.wrapHandler(s.PhotoHandler.GetPhotoByID))
 					photoRouter.Delete("/batch", s.wrapHandler(s.PhotoHandler.DeletePhotoBatch))
 					photoRouter.Post("", s.wrapHandler(s.PhotoHandler.CreatePhoto))
 					photoRouter.Post("/batch", s.wrapHandler(s.PhotoHandler.CreatePhotoBatch))
 					photoRouter.Put("/:id", s.wrapHandler(s.PhotoHandler.UpdatePhoto))
-					photoRouter.Get("/teams", s.wrapHandler(s.PhotoHandler.ListPhotoTeams))
 				}
 				{
 					userRouter := authRouter.Group("/users")

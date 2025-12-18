@@ -68,7 +68,7 @@ func (s *SheetHandler) ListTopComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commenVOs, totalCount, commentQuery.Page), nil
+	return dto.NewPage(commenVOs, totalCount, commentQuery.Pagination), nil
 }
 
 func (s *SheetHandler) ListChildren(ctx *fiber.Ctx) (interface{}, error) {
@@ -116,11 +116,11 @@ func (s *SheetHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	_ = s.SheetCommentAssembler.ClearSensitiveField(ctx.UserContext(), allComments)
-	commentVOs, total, err := s.SheetCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, commentQuery.Page)
+	commentVOs, total, err := s.SheetCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, commentQuery.Pagination)
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commentVOs, total, commentQuery.Page), nil
+	return dto.NewPage(commentVOs, total, commentQuery.Pagination), nil
 }
 
 func (s *SheetHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
@@ -155,7 +155,7 @@ func (s *SheetHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(result, total, commentQuery.Page), nil
+	return dto.NewPage(result, total, commentQuery.Pagination), nil
 }
 
 func (s *SheetHandler) CreateComment(ctx *fiber.Ctx) (interface{}, error) {

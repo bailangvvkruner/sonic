@@ -10,7 +10,7 @@ import (
 
 type PhotoService interface {
 	List(ctx context.Context, sort *param.Sort) ([]*entity.Photo, error)
-	Page(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Photo, int64, error)
+	Page(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Photo, int64, error)
 	GetByID(ctx context.Context, id int32) (*entity.Photo, error)
 	Create(ctx context.Context, photoParam *param.Photo) (*entity.Photo, error)
 	CreateBatch(ctx context.Context, photosParam []*param.Photo) ([]*entity.Photo, error)

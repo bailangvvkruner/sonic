@@ -18,7 +18,7 @@ import (
 type BaseCommentAssembler interface {
 	ConvertToDTO(ctx context.Context, comment *entity.Comment) (*dto.Comment, error)
 	ConvertToDTOList(ctx context.Context, comments []*entity.Comment) ([]*dto.Comment, error)
-	PageConvertToVOs(ctx context.Context, comments []*entity.Comment, page param.Page) ([]*vo.Comment, int64, error)
+	PageConvertToVOs(ctx context.Context, comments []*entity.Comment, page param.Pagination) ([]*vo.Comment, int64, error)
 	ConvertToWithParentVO(ctx context.Context, comments []*entity.Comment) ([]*vo.CommentWithParent, error)
 	ConvertToWithHasChildren(ctx context.Context, comments []*entity.Comment) ([]*vo.CommentWithHasChildren, error)
 	ClearSensitiveField(ctx context.Context, comments []*entity.Comment) []*entity.Comment
@@ -168,7 +168,7 @@ func (b *baseCommentAssembler) buildCommentTree(ctx context.Context, comments []
 	return topComments, nil
 }
 
-func (b *baseCommentAssembler) PageConvertToVOs(ctx context.Context, allComments []*entity.Comment, page param.Page) ([]*vo.Comment, int64, error) {
+func (b *baseCommentAssembler) PageConvertToVOs(ctx context.Context, allComments []*entity.Comment, page param.Pagination) ([]*vo.Comment, int64, error) {
 	topComments, err := b.buildCommentTree(ctx, allComments)
 	if err != nil {
 		return nil, 0, err

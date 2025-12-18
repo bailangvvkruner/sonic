@@ -42,7 +42,7 @@ func (p *PhotoHandler) ListPhoto(ctx *fiber.Ctx) (interface{}, error) {
 
 func (p *PhotoHandler) PagePhotos(ctx *fiber.Ctx) (interface{}, error) {
 	type Param struct {
-		param.Page
+		param.Pagination
 		param.Sort
 	}
 	param := Param{}
@@ -53,11 +53,11 @@ func (p *PhotoHandler) PagePhotos(ctx *fiber.Ctx) (interface{}, error) {
 	if len(param.Fields) == 0 {
 		param.Fields = append(param.Fields, "createTime,desc")
 	}
-	photos, totalCount, err := p.PhotoService.Page(ctx.UserContext(), param.Page, &param.Sort)
+	photos, totalCount, err := p.PhotoService.Page(ctx.UserContext(), param.Pagination, &param.Sort)
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(p.PhotoService.ConvertToDTOs(ctx.UserContext(), photos), totalCount, param.Page), nil
+	return dto.NewPage(p.PhotoService.ConvertToDTOs(ctx.UserContext(), photos), totalCount, param.Pagination), nil
 }
 
 func (p *PhotoHandler) GetPhotoByID(ctx *fiber.Ctx) (interface{}, error) {

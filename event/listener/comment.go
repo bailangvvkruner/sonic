@@ -97,9 +97,9 @@ func (c *CommentListener) HandleCommentNew(ctx context.Context, ce event.Event) 
 		data["createTime"] = comment.CreateTime
 		data["authorUrl"] = comment.AuthorURL
 		if comment.Type == consts.CommentTypePost {
-			subject = "Your blog post ã€Š" + postDTO.Title + "ã€‹ has a new comment"
+			subject = "Your blog post ã€? + postDTO.Title + "ã€?has a new comment"
 		} else {
-			subject = "Your blog page ã€Š" + postDTO.Title + "ã€‹ has a new comment"
+			subject = "Your blog page ã€? + postDTO.Title + "ã€?has a new comment"
 		}
 	} else if comment.Type == consts.CommentTypeJournal {
 		journalPrefix, err := c.OptionService.GetJournalPrefix(ctx)
@@ -205,9 +205,9 @@ func (c *CommentListener) HandleCommentReply(ctx context.Context, ce event.Event
 		data["createTime"] = comment.CreateTime
 		data["authorUrl"] = comment.AuthorURL
 		if comment.Type == consts.CommentTypePost {
-			subject = "You have a new reply in the ã€Š" + post.Title + "ã€‹ article you comment on " + blogTitle.(string)
+			subject = "You have a new reply in the ã€? + post.Title + "ã€?article you comment on " + blogTitle.(string)
 		} else {
-			subject = "You have a new reply in the ã€Š" + post.Title + "ã€‹ page you comment on " + blogTitle.(string)
+			subject = "You have a new reply in the ã€? + post.Title + "ã€?page you comment on " + blogTitle.(string)
 		}
 	} else if comment.Type == consts.CommentTypeJournal {
 		blogBaseURL, err := c.OptionService.GetBlogBaseURL(ctx)

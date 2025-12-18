@@ -95,5 +95,5 @@ func (c *CategoryHandler) ListPosts(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	postVOs, err := c.PostAssembler.ConvertToListVO(ctx.UserContext(), posts)
-	return dto.NewPage(postVOs, totalCount, postQuery.Page), err
+	return dto.NewPage(postVOs, totalCount, postQuery.Pagination), err
 }

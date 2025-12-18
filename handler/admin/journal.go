@@ -42,7 +42,7 @@ func (j *JournalHandler) ListJournal(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(journalDTOs, totalCount, journalQuery.Page), nil
+	return dto.NewPage(journalDTOs, totalCount, journalQuery.Pagination), nil
 }
 
 func (j *JournalHandler) ListLatestJournal(ctx *fiber.Ctx) (interface{}, error) {
@@ -52,7 +52,7 @@ func (j *JournalHandler) ListLatestJournal(ctx *fiber.Ctx) (interface{}, error) 
 	}
 	journalQuery := param.JournalQuery{
 		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
-		Page: param.Page{PageNum: 0, PageSize: top},
+		Page: param.Pagination{PageNum: 0, PageSize: top},
 	}
 	journals, _, err := j.JournalService.ListJournal(ctx.UserContext(), journalQuery)
 	if err != nil {

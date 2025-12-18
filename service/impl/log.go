@@ -27,7 +27,7 @@ func (l *logServiceImpl) Clear(ctx context.Context) error {
 	return nil
 }
 
-func (l *logServiceImpl) PageLog(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Log, int64, error) {
+func (l *logServiceImpl) PageLog(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Log, int64, error) {
 	logDAL := dal.GetQueryByCtx(ctx).Log
 	logDO := logDAL.WithContext(ctx)
 	err := BuildSort(sort, &logDAL, &logDO)

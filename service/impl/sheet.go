@@ -47,7 +47,7 @@ func NewSheetService(basePostService service.BasePostService,
 	}
 }
 
-func (s sheetServiceImpl) Page(ctx context.Context, page param.Page, sort *param.Sort) ([]*entity.Post, int64, error) {
+func (s sheetServiceImpl) Page(ctx context.Context, page param.Pagination, sort *param.Sort) ([]*entity.Post, int64, error) {
 	sheetDAL := dal.GetQueryByCtx(ctx).Post
 	sheetDO := sheetDAL.WithContext(ctx).Where(sheetDAL.Type.Eq(consts.PostTypeSheet))
 	err := BuildSort(sort, &sheetDAL, &sheetDO)

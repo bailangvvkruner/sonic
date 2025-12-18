@@ -32,7 +32,7 @@ func (p *JournalModel) Journals(ctx context.Context, model template.Model, page 
 	pageSize := p.OptionService.GetOrByDefault(ctx, property.JournalPageSize).(int)
 	journalType := consts.JournalTypePublic
 	journals, total, err := p.JournalService.ListJournal(ctx, param.JournalQuery{
-		Page: param.Page{PageNum: page, PageSize: pageSize},
+		Page: param.Pagination{PageNum: page, PageSize: pageSize},
 		Sort: &param.Sort{
 			Fields: []string{"createTime,desc"},
 		},
@@ -46,7 +46,7 @@ func (p *JournalModel) Journals(ctx context.Context, model template.Model, page 
 	if err != nil {
 		return "", err
 	}
-	journalPage := dto.NewPage(journalDTOs, total, param.Page{PageNum: page, PageSize: pageSize})
+	journalPage := dto.NewPage(journalDTOs, total, param.Pagination{PageNum: page, PageSize: pageSize})
 	model["is_journals"] = true
 	model["journals"] = journalPage
 	model["meta_keywords"] = p.OptionService.GetOrByDefault(ctx, property.SeoKeywords)

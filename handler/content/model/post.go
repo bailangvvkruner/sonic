@@ -147,7 +147,7 @@ func (p *PostModel) List(ctx context.Context, page int, model template.Model) (s
 	pageSize := p.OptionService.GetIndexPageSize(ctx)
 	sort := p.OptionService.GetPostSort(ctx)
 	postQuery := param.PostQuery{
-		Page: param.Page{
+		Page: param.Pagination{
 			PageNum:  page,
 			PageSize: pageSize,
 		},
@@ -162,7 +162,7 @@ func (p *PostModel) List(ctx context.Context, page int, model template.Model) (s
 	if err != nil {
 		return "", err
 	}
-	postPage := dto.NewPage(postVOs, totalCount, param.Page{
+	postPage := dto.NewPage(postVOs, totalCount, param.Pagination{
 		PageNum:  page,
 		PageSize: pageSize,
 	})
@@ -179,7 +179,7 @@ func (p *PostModel) List(ctx context.Context, page int, model template.Model) (s
 func (p *PostModel) Archives(ctx context.Context, page int, model template.Model) (string, error) {
 	pageSize := p.OptionService.GetOrByDefault(ctx, property.ArchivePageSize).(int)
 	postQuery := param.PostQuery{
-		Page: param.Page{
+		Page: param.Pagination{
 			PageNum:  page,
 			PageSize: pageSize,
 		},
@@ -196,7 +196,7 @@ func (p *PostModel) Archives(ctx context.Context, page int, model template.Model
 	if err != nil {
 		return "", err
 	}
-	postPage := dto.NewPage(postVOs, totalPage, param.Page{
+	postPage := dto.NewPage(postVOs, totalPage, param.Pagination{
 		PageNum:  page,
 		PageSize: pageSize,
 	})

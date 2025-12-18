@@ -55,7 +55,7 @@ func (j *JournalHandler) ListJournal(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(journalDTOs, totalCount, journalQuery.Page), nil
+	return dto.NewPage(journalDTOs, totalCount, journalQuery.Pagination), nil
 }
 
 func (j *JournalHandler) GetJournal(ctx *fiber.Ctx) (interface{}, error) {
@@ -109,7 +109,7 @@ func (j *JournalHandler) ListTopComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commenVOs, totalCount, commentQuery.Page), nil
+	return dto.NewPage(commenVOs, totalCount, commentQuery.Pagination), nil
 }
 
 func (j *JournalHandler) ListChildren(ctx *fiber.Ctx) (interface{}, error) {
@@ -157,11 +157,11 @@ func (j *JournalHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 		return nil, err
 	}
 	_ = j.JournalCommentAssembler.ClearSensitiveField(ctx.UserContext(), allComments)
-	commentVOs, total, err := j.JournalCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, commentQuery.Page)
+	commentVOs, total, err := j.JournalCommentAssembler.PageConvertToVOs(ctx.UserContext(), allComments, commentQuery.Pagination)
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(commentVOs, total, commentQuery.Page), nil
+	return dto.NewPage(commentVOs, total, commentQuery.Pagination), nil
 }
 
 func (j *JournalHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
@@ -196,7 +196,7 @@ func (j *JournalHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(result, total, commentQuery.Page), nil
+	return dto.NewPage(result, total, commentQuery.Pagination), nil
 }
 
 func (j *JournalHandler) CreateComment(ctx *fiber.Ctx) (interface{}, error) {

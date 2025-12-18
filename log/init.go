@@ -30,7 +30,7 @@ func NewLogger(conf *config.Config) *zap.Logger {
 		core = zapcore.NewCore(getProdEncoder(), getWriter(conf), getLogLevel(conf.Log.Levels.App))
 	}
 
-	// 传入 zap.AddCaller() 显示打日志点的文件名和行数
+	// 传入 zap.AddCaller() 显示打日志点的文件名和行�?
 	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.DPanicLevel))
 
 	exportUseLogger = logger.WithOptions(zap.AddCallerSkip(1))

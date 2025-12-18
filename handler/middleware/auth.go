@@ -80,7 +80,7 @@ func (a *AuthMiddleware) GetWrapHandler() fiber.Handler {
 		if !ok || userID == nil {
 			return ctx.Status(http.StatusUnauthorized).JSON(&dto.BaseDTO{
 				Status:  http.StatusUnauthorized,
-				Message: "Token 已过期或不存在",
+				Message: "Token 已过期或不存�?,
 			})
 		}
 
@@ -88,7 +88,7 @@ func (a *AuthMiddleware) GetWrapHandler() fiber.Handler {
 		if xerr.GetType(err) == xerr.NoRecord {
 			return ctx.Status(http.StatusUnauthorized).JSON(&dto.BaseDTO{
 				Status:  http.StatusUnauthorized,
-				Message: "用户不存在",
+				Message: "用户不存�?,
 			})
 		}
 		if err != nil {
