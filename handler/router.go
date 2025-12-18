@@ -102,18 +102,7 @@ func (s *Server) RegisterRouters() {
 				}
 				{
 					postRouter := authRouter.Group("/posts")
-					postRouter.Get("", s.wrapHandler(s.PostHandler.ListPosts))
-					postRouter.Get("/latest", s.wrapHandler(s.PostHandler.ListLatestPosts))
-					postRouter.Get("/status/:status", s.wrapHandler(s.PostHandler.ListPostsByStatus))
-					postRouter.Get("/:postID", s.wrapHandler(s.PostHandler.GetByPostID))
-					postRouter.Post("", s.wrapHandler(s.PostHandler.CreatePost))
-					postRouter.Put("/:postID", s.wrapHandler(s.PostHandler.UpdatePost))
-					postRouter.Put("/:postID/status/:status", s.wrapHandler(s.PostHandler.UpdatePostStatus))
-					postRouter.Put("/status/:status", s.wrapHandler(s.PostHandler.UpdatePostStatusBatch))
-					postRouter.Put("/:postID/status/draft/content", s.wrapHandler(s.PostHandler.UpdatePostDraft))
-					postRouter.Delete("/:postID", s.wrapHandler(s.PostHandler.DeletePost))
-					postRouter.Delete("", s.wrapHandler(s.PostHandler.DeletePostBatch))
-					postRouter.Get("/:postID/preview", s.PostHandler.PreviewPost)
+					// Move specific routes before parameterized routes
 					{
 						postCommentRouter := postRouter.Group("/comments")
 						postCommentRouter.Get("", s.wrapHandler(s.PostCommentHandler.ListPostComment))
@@ -127,6 +116,18 @@ func (s *Server) RegisterRouters() {
 						postCommentRouter.Delete("/:commentID", s.wrapHandler(s.PostCommentHandler.DeletePostComment))
 						postCommentRouter.Delete("", s.wrapHandler(s.PostCommentHandler.DeletePostCommentBatch))
 					}
+					postRouter.Get("", s.wrapHandler(s.PostHandler.ListPosts))
+					postRouter.Get("/latest", s.wrapHandler(s.PostHandler.ListLatestPosts))
+					postRouter.Get("/status/:status", s.wrapHandler(s.PostHandler.ListPostsByStatus))
+					postRouter.Get("/:postID", s.wrapHandler(s.PostHandler.GetByPostID))
+					postRouter.Post("", s.wrapHandler(s.PostHandler.CreatePost))
+					postRouter.Put("/:postID", s.wrapHandler(s.PostHandler.UpdatePost))
+					postRouter.Put("/:postID/status/:status", s.wrapHandler(s.PostHandler.UpdatePostStatus))
+					postRouter.Put("/status/:status", s.wrapHandler(s.PostHandler.UpdatePostStatusBatch))
+					postRouter.Put("/:postID/status/draft/content", s.wrapHandler(s.PostHandler.UpdatePostDraft))
+					postRouter.Delete("/:postID", s.wrapHandler(s.PostHandler.DeletePost))
+					postRouter.Delete("", s.wrapHandler(s.PostHandler.DeletePostBatch))
+					postRouter.Get("/:postID/preview", s.PostHandler.PreviewPost)
 				}
 				{
 					optionRouter := authRouter.Group("/options")
@@ -173,11 +174,7 @@ func (s *Server) RegisterRouters() {
 				}
 				{
 					journalRouter := authRouter.Group("/journals")
-					journalRouter.Get("", s.wrapHandler(s.JournalHandler.ListJournal))
-					journalRouter.Get("/latest", s.wrapHandler(s.JournalHandler.ListLatestJournal))
-					journalRouter.Post("", s.wrapHandler(s.JournalHandler.CreateJournal))
-					journalRouter.Put("/:journalID", s.wrapHandler(s.JournalHandler.UpdateJournal))
-					journalRouter.Delete("/:journalID", s.wrapHandler(s.JournalHandler.DeleteJournal))
+					// Move specific routes before parameterized routes
 					{
 						journalCommentRouter := journalRouter.Group("/comments")
 						journalCommentRouter.Get("", s.wrapHandler(s.JournalCommentHandler.ListJournalComment))
@@ -191,6 +188,11 @@ func (s *Server) RegisterRouters() {
 						journalCommentRouter.Delete("/:commentID", s.wrapHandler(s.JournalCommentHandler.DeleteJournalComment))
 						journalCommentRouter.Delete("", s.wrapHandler(s.JournalCommentHandler.DeleteJournalCommentBatch))
 					}
+					journalRouter.Get("", s.wrapHandler(s.JournalHandler.ListJournal))
+					journalRouter.Get("/latest", s.wrapHandler(s.JournalHandler.ListLatestJournal))
+					journalRouter.Post("", s.wrapHandler(s.JournalHandler.CreateJournal))
+					journalRouter.Put("/:journalID", s.wrapHandler(s.JournalHandler.UpdateJournal))
+					journalRouter.Delete("/:journalID", s.wrapHandler(s.JournalHandler.DeleteJournal))
 				}
 
 				{
@@ -322,28 +324,29 @@ func (s *Server) RegisterRouters() {
 			contentAPIRouter.Get("/categories/:slug/posts", s.wrapHandler(s.ContentAPICategoryHandler.ListPosts))
 
 			contentAPIRouter.Get("/journals", s.wrapHandler(s.ContentAPIJournalHandler.ListJournal))
+			contentAPIRouter.Get("/journals/comments", s.wrapHandler(s.ContentAPIJournalHandler.ListComment)) // Moved up if exists or needed
+			contentAPIRouter.Post("/journals/comments", s.wrapHandler(s.ContentAPIJournalHandler.CreateComment)) // Create is specific
 			contentAPIRouter.Get("/journals/:journalID", s.wrapHandler(s.ContentAPIJournalHandler.GetJournal))
 			contentAPIRouter.Get("/journals/:journalID/comments/top_view", s.wrapHandler(s.ContentAPIJournalHandler.ListTopComment))
 			contentAPIRouter.Get("/journals/:journalID/comments/:parentID/children", s.wrapHandler(s.ContentAPIJournalHandler.ListChildren))
 			contentAPIRouter.Get("/journals/:journalID/comments/tree_view", s.wrapHandler(s.ContentAPIJournalHandler.ListCommentTree))
 			contentAPIRouter.Get("/journals/:journalID/comments/list_view", s.wrapHandler(s.ContentAPIJournalHandler.ListComment))
-			contentAPIRouter.Post("/journals/comments", s.wrapHandler(s.ContentAPIJournalHandler.CreateComment))
 			contentAPIRouter.Post("/journals/:journalID/likes", s.wrapHandler(s.ContentAPIJournalHandler.Like))
 
 			contentAPIRouter.Post("/photos/:photoID/likes", s.wrapHandler(s.ContentAPIPhotoHandler.Like))
 
+			contentAPIRouter.Post("/posts/comments", s.wrapHandler(s.ContentAPIPostHandler.CreateComment)) // Create comment is specific
 			contentAPIRouter.Get("/posts/:postID/comments/top_view", s.wrapHandler(s.ContentAPIPostHandler.ListTopComment))
 			contentAPIRouter.Get("/posts/:postID/comments/:parentID/children", s.wrapHandler(s.ContentAPIPostHandler.ListChildren))
 			contentAPIRouter.Get("/posts/:postID/comments/tree_view", s.wrapHandler(s.ContentAPIPostHandler.ListCommentTree))
 			contentAPIRouter.Get("/posts/:postID/comments/list_view", s.wrapHandler(s.ContentAPIPostHandler.ListComment))
-			contentAPIRouter.Post("/posts/comments", s.wrapHandler(s.ContentAPIPostHandler.CreateComment))
 			contentAPIRouter.Post("/posts/:postID/likes", s.wrapHandler(s.ContentAPIPostHandler.Like))
 
+			contentAPIRouter.Post("/sheets/comments", s.wrapHandler(s.ContentAPISheetHandler.CreateComment)) // Create comment is specific
 			contentAPIRouter.Get("/sheets/:sheetID/comments/top_view", s.wrapHandler(s.ContentAPISheetHandler.ListTopComment))
 			contentAPIRouter.Get("/sheets/:sheetID/comments/:parentID/children", s.wrapHandler(s.ContentAPISheetHandler.ListChildren))
 			contentAPIRouter.Get("/sheets/:sheetID/comments/tree_view", s.wrapHandler(s.ContentAPISheetHandler.ListCommentTree))
 			contentAPIRouter.Get("/sheets/:sheetID/comments/list_view", s.wrapHandler(s.ContentAPISheetHandler.ListComment))
-			contentAPIRouter.Post("/sheets/comments", s.wrapHandler(s.ContentAPISheetHandler.CreateComment))
 
 			contentAPIRouter.Get("/links", s.wrapHandler(s.ContentAPILinkHandler.ListLinks))
 			contentAPIRouter.Get("/links/team_view", s.wrapHandler(s.ContentAPILinkHandler.LinkTeamVO))
@@ -421,4 +424,5 @@ func (s *Server) registerDynamicRouters(contentRouter fiber.Router) error {
 	}
 	contentRouter.Get("admin_preview/"+sheetPath+"/:slug", s.wrapHTMLHandler(s.ContentSheetHandler.AdminSheetBySlug))
 	return nil
+}
 }
