@@ -22,8 +22,6 @@ env:
   DOCKER_REPO: bailangvvking/sonic
   IMAGE_NAME: sonic
   IMAGE_TAG: cache
-  # 设置扫描环境变量
-  SCAN_CACHE_DIR: /tmp/trivy-cache
 
 jobs:
   build-and-push:
