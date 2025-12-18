@@ -42,16 +42,13 @@ RUN set -eux \
     && cp /go/src/github.com/go-sonic/sonic/scripts/docker_init.sh /app/
 
 
-# FROM alpine:latest as prod
-FROM busybox:musl as prod
+FROM alpine:latest as prod
+# FROM busybox:musl as prod
 
 COPY --from=builder /app/ /app/
 
-# RUN set -eux \
-#     && apk add --no-cache --no-scripts --virtual .build-deps \
-#     tzdata \
-#     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
-#     && echo "Asia/Shanghai" > /etc/timezone
+# Install CA certificates for TLS/SSL verification
+RUN apk update && apk add --no-cache ca-certificates
 
 # Copy timezone files from builder stage
 COPY --from=builder /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
