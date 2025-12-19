@@ -45,7 +45,7 @@ func (p *PostAuthentication) Authenticate(ctx context.Context, token string, id 
 		if post.Password == password {
 			return p.doAuthenticate(ctx, token, id)
 		} else {
-			return "", xerr.WithMsg(nil, "密码不正�?).WithStatus(http.StatusUnauthorized)
+			return "", xerr.WithMsg(nil, "密码不正确").WithStatus(http.StatusUnauthorized)
 		}
 	}
 	postCategories, err := p.PostCategoryService.ListCategoryByPostID(ctx, id)
@@ -85,7 +85,7 @@ func (p *PostAuthentication) Authenticate(ctx context.Context, token string, id 
 			}
 		}
 	}
-	return "", xerr.WithMsg(nil, "密码不正�?).WithStatus(http.StatusUnauthorized)
+	return "", xerr.WithMsg(nil, "密码不正确").WithStatus(http.StatusUnauthorized)
 }
 
 func (p *PostAuthentication) IsAuthenticated(ctx context.Context, tokenStr string, id int32) (bool, error) {

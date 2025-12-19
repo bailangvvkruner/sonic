@@ -61,13 +61,13 @@ func (c *CategoryAuthentication) Authenticate(ctx context.Context, token string,
 			case password:
 				return c.doAuthenticate(ctx, token, parentIDs...)
 			default:
-				return "", xerr.WithMsg(nil, "密码不正�?).WithStatus(http.StatusUnauthorized)
+				return "", xerr.WithMsg(nil, "密码不正确").WithStatus(http.StatusUnauthorized)
 			}
 		}
 	} else if category.Password == password {
 		return c.doAuthenticate(ctx, token, id)
 	}
-	return "", xerr.WithMsg(nil, "密码不正�?).WithStatus(http.StatusUnauthorized)
+	return "", xerr.WithMsg(nil, "密码不正确").WithStatus(http.StatusUnauthorized)
 }
 
 func (c *CategoryAuthentication) IsAuthenticated(ctx context.Context, tokenStr string, id int32) (bool, error) {
