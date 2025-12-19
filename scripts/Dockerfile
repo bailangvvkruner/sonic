@@ -4,8 +4,8 @@ FROM golang:alpine as builder
 RUN apk --no-cache add \
     git \
     ca-certificates \
-    gcc \
-    g++ \
+    # gcc \
+    # g++ \
     # 包含strip命令
     binutils \
     upx
@@ -14,7 +14,7 @@ RUN apk --no-cache add \
 WORKDIR /go/src/github.com/go-sonic/sonic
 
 RUN \
-    git clone -b fiber --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
+    git clone -b sqlite3 --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
@@ -33,11 +33,11 @@ RUN \
     # 方法二：使用 @latest 但清除版本约束
     && go get github.com/golang-jwt/jwt/v5@latest \
     && go get github.com/disintegration/imaging@latest \
-    && CGO_ENABLED=1 GOOS=linux \
+    && CGO_ENABLED=0 GOOS=linux \
         go build \
         -o sonic \
-        # -ldflags="-s -w" \
-        -ldflags="-s -w -extldflags -static" \
+        -ldflags="-s -w" \
+        # -ldflags="-s -w -extldflags -static" \
         -trimpath . \
         && echo "Binary size after build:" \
         && du -b sonic \

@@ -8,6 +8,7 @@ require (
 	github.com/clbanning/mxj/v2 v2.7.0
 	github.com/disintegration/imaging v1.6.2
 	github.com/fsnotify/fsnotify v1.7.0
+	github.com/glebarez/sqlite v1.11.0
 	github.com/go-git/go-git/v5 v5.11.0
 	github.com/go-playground/locales v0.14.1
 	github.com/go-playground/universal-translator v0.18.1
@@ -34,9 +35,8 @@ require (
 	golang.org/x/image v0.15.0
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/mysql v1.5.2
-	gorm.io/driver/sqlite v1.5.4
 	gorm.io/gen v0.3.25
-	gorm.io/gorm v1.25.6
+	gorm.io/gorm v1.25.7
 	gorm.io/plugin/dbresolver v1.5.0
 )
 
@@ -55,6 +55,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fogleman/gg v1.3.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
+	github.com/glebarez/go-sqlite v1.21.2 // indirect
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.5.0 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
@@ -84,6 +85,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
+	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/rs/xid v1.5.0 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect
@@ -115,5 +117,10 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/datatypes v1.2.0 // indirect
+	gorm.io/driver/sqlite v1.5.4 // indirect
 	gorm.io/hints v1.1.2 // indirect
+	modernc.org/libc v1.22.5 // indirect
+	modernc.org/mathutil v1.5.0 // indirect
+	modernc.org/memory v1.5.0 // indirect
+	modernc.org/sqlite v1.23.1 // indirect
 )
