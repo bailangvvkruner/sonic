@@ -80,7 +80,7 @@ func (c *CategoryModel) CategoryDetail(ctx context.Context, model template.Model
 	pageSize := c.OptionService.GetOrByDefault(ctx, property.ArchivePageSize).(int)
 	sort := c.OptionService.GetPostSort(ctx)
 	postQuery := param.PostQuery{
-		Page: param.Pagination{
+		Pagination: param.Pagination{
 			PageNum:  page,
 			PageSize: pageSize,
 		},

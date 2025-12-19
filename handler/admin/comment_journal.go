@@ -61,8 +61,8 @@ func (j *JournalCommentHandler) ListJournalCommentLatest(ctx *fiber.Ctx) (interf
 		return nil, err
 	}
 	commentQuery := param.CommentQuery{
-		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
-		Page: param.Pagination{PageNum: 0, PageSize: int(top)},
+		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
+		Pagination: param.Pagination{PageNum: 0, PageSize: int(top)},
 	}
 	comments, _, err := j.JournalCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypeSheet)
 	if err != nil {
@@ -116,9 +116,9 @@ func (j *JournalCommentHandler) ListJournalCommentWithParent(ctx *fiber.Ctx) (in
 	page := param.Pagination{PageSize: pageSize.(int), PageNum: int(pageNum)}
 
 	comments, totalCount, err := j.JournalCommentService.Page(ctx.UserContext(), param.CommentQuery{
-		ContentID: &journalID,
-		Page:      page,
-		Sort:      &param.Sort{Fields: []string{"createTime,desc"}},
+		ContentID:  &journalID,
+		Pagination: page,
+		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
 	}, consts.CommentTypePost)
 	if err != nil {
 		return nil, err

@@ -35,7 +35,7 @@ func (a *AttachmentHandler) QueryAttachment(ctx *fiber.Ctx) (interface{}, error)
 	if err != nil {
 		return nil, err
 	}
-	return dto.NewPage(attachmentDTOs, totalCount, queryparam.Pagination), nil
+	return dto.NewPage(attachmentDTOs, totalCount, queryParam.Pagination), nil
 }
 
 func (a *AttachmentHandler) GetAttachmentByID(ctx *fiber.Ctx) (interface{}, error) {

@@ -51,8 +51,8 @@ func (j *JournalHandler) ListLatestJournal(ctx *fiber.Ctx) (interface{}, error) 
 		top = 10
 	}
 	journalQuery := param.JournalQuery{
-		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
-		Page: param.Pagination{PageNum: 0, PageSize: top},
+		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
+		Pagination: param.Pagination{PageNum: 0, PageSize: top},
 	}
 	journals, _, err := j.JournalService.ListJournal(ctx.UserContext(), journalQuery)
 	if err != nil {

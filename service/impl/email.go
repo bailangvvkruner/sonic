@@ -111,8 +111,8 @@ func (e *emailServiceImpl) sendEmail(email *email.Email, properties emailPropert
 	err := email.SendWithTLS(fmt.Sprintf("%s:%d", properties.Host, properties.SSLPort),
 		smtp.PlainAuth("", properties.Username, properties.Password, properties.Host), &tls.Config{ServerName: properties.Host, MinVersion: tls.VersionTLS12})
 	if err != nil {
-		return xerr.Email.Wrapf(err, "发送邮件错�?emailProperties=%v", properties).WithStatus(xerr.StatusInternalServerError).
-			WithMsg("发送邮件错�?)
+		return xerr.Email.Wrapf(err, "发送邮件错误 emailProperties=%v", properties).WithStatus(xerr.StatusInternalServerError).
+			WithMsg("发送邮件错误")
 	}
 	return nil
 }

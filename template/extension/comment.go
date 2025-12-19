@@ -31,7 +31,7 @@ func (ce *commentExtension) addGetLatestComment() {
 	getLatestComment := func(top int) ([]*vo.PostCommentWithPost, error) {
 		commentQuery := param.CommentQuery{
 			Sort:          &param.Sort{Fields: []string{"createTime,desc"}},
-			Page:          param.Pagination{PageNum: 0, PageSize: top},
+			Pagination:    param.Pagination{PageNum: 0, PageSize: top},
 			CommentStatus: consts.CommentStatusPublished.Ptr(),
 		}
 		comments, _, err := ce.PostCommentService.Page(context.Background(), commentQuery, consts.CommentTypePost)

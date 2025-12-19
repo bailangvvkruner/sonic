@@ -65,7 +65,7 @@ func (p *PostHandler) ListLatestPosts(ctx *fiber.Ctx) (interface{}, error) {
 		top = 10
 	}
 	postQuery := param.PostQuery{
-		Page: param.Pagination{
+		Pagination: param.Pagination{
 			PageSize: int(top),
 			PageNum:  0,
 		},

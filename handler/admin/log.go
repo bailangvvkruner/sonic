@@ -51,7 +51,7 @@ func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 			Fields: []string{"createTime,desc"},
 		}
 	}
-	logs, totalCount, err := l.LogService.PageLog(ctx.UserContext(), logparam.Pagination, logParam.Sort)
+	logs, totalCount, err := l.LogService.PageLog(ctx.UserContext(), logParam.Pagination, logParam.Sort)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +59,7 @@ func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 	for _, log := range logs {
 		logDTOs = append(logDTOs, l.LogService.ConvertToDTO(log))
 	}
-	return dto.NewPage(logDTOs, totalCount, logparam.Pagination), nil
+	return dto.NewPage(logDTOs, totalCount, logParam.Pagination), nil
 }
 
 func (l *LogHandler) ClearLog(ctx *fiber.Ctx) (interface{}, error) {

@@ -32,7 +32,7 @@ func (p *JournalModel) Journals(ctx context.Context, model template.Model, page 
 	pageSize := p.OptionService.GetOrByDefault(ctx, property.JournalPageSize).(int)
 	journalType := consts.JournalTypePublic
 	journals, total, err := p.JournalService.ListJournal(ctx, param.JournalQuery{
-		Page: param.Pagination{PageNum: page, PageSize: pageSize},
+		Pagination: param.Pagination{PageNum: page, PageSize: pageSize},
 		Sort: &param.Sort{
 			Fields: []string{"createTime,desc"},
 		},

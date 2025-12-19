@@ -69,8 +69,8 @@ func (p *PostCommentHandler) ListPostCommentLatest(ctx *fiber.Ctx) (interface{},
 		return nil, err
 	}
 	commentQuery := param.CommentQuery{
-		Sort: &param.Sort{Fields: []string{"createTime,desc"}},
-		Page: param.Pagination{PageNum: 0, PageSize: int(top)},
+		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
+		Pagination: param.Pagination{PageNum: 0, PageSize: int(top)},
 	}
 	comments, _, err := p.PostCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypePost)
 	if err != nil {
@@ -122,9 +122,9 @@ func (p *PostCommentHandler) ListPostCommentWithParent(ctx *fiber.Ctx) (interfac
 	page := param.Pagination{PageNum: int(pageNum), PageSize: pageSize.(int)}
 
 	comments, totalCount, err := p.PostCommentService.Page(ctx.UserContext(), param.CommentQuery{
-		ContentID: &postID,
-		Page:      page,
-		Sort:      &param.Sort{Fields: []string{"createTime,desc"}},
+		ContentID:  &postID,
+		Pagination: page,
+		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
 	}, consts.CommentTypePost)
 	if err != nil {
 		return nil, err

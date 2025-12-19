@@ -332,7 +332,7 @@ func (b basePostServiceImpl) CreateOrUpdate(ctx context.Context, post *entity.Po
 				return WrapDBErr(err)
 			}
 			if postCount > 0 {
-				return xerr.BadParam.New("").WithMsg("文章别名已存�?Article alias already exists)").WithStatus(xerr.StatusBadRequest)
+				return xerr.BadParam.New("").WithMsg("文章别名已存在(Article alias already exists)").WithStatus(xerr.StatusBadRequest)
 			}
 			status := post.Status
 			err = postDAL.WithContext(ctx).Create(post)
@@ -354,7 +354,7 @@ func (b basePostServiceImpl) CreateOrUpdate(ctx context.Context, post *entity.Po
 				return WrapDBErr(err)
 			}
 			if slugCount > 0 {
-				return xerr.BadParam.New("").WithMsg("文章别名已存�?Article alias already exists)").WithStatus(xerr.StatusBadRequest)
+				return xerr.BadParam.New("").WithMsg("文章别名已存在(Article alias already exists)").WithStatus(xerr.StatusBadRequest)
 			}
 			updateResult, err := postDAL.WithContext(ctx).Select(field.Star).Omit(postDAL.Likes, postDAL.Visits).Where(postDAL.ID.Eq(post.ID)).Updates(post)
 			if err != nil {

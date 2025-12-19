@@ -147,7 +147,7 @@ func (u *userServiceImpl) MustNotExpire(ctx context.Context, expireTime *time.Ti
 	}
 	now := time.Now()
 	if expireTime.After(now) {
-		return xerr.Forbidden.New("账号已被停用，请 %s 后重�?, util.TimeFormat(int(expireTime.Sub(now).Seconds()))).WithStatus(xerr.StatusForbidden)
+		return xerr.Forbidden.New("账号已被停用，请 %s 后重试", util.TimeFormat(int(expireTime.Sub(now).Seconds()))).WithStatus(xerr.StatusForbidden)
 	}
 	return nil
 }
