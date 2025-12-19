@@ -667,11 +667,21 @@
                                             if (http) {
                                                 http.get("/api/admin/options/map_view").then(function(res) {
                                                     var d = res.data;
-                                                    if (d.status && d.status !== 200) return;
+                                                    // Handle both wrapped and unwrapped responses
+                                                    if (d.status && d.status !== 200) {
+                                                        // If there's a status field and it's not 200, it might be an error or standard wrapper
+                                                        // But if status is present, data is usually in d.data
+                                                    }
+                                                    
                                                     var data = d.data || d;
+                                                    // console.log("Cache options loaded:", data);
+                                                    
                                                     t.form.cache_enabled = data.cache_enabled === "true";
                                                     t.form.cache_expiration_time = parseInt(data.cache_expiration_time) || 10;
                                                     t.form.cache_expiration_unit = data.cache_expiration_unit || "MINUTE";
+                                                }).catch(function(e) {
+                                                    console.error("Failed to load cache options", e);
+                                                    t.$message.error("Failed to load settings");
                                                 });
                                             }
                                         },
@@ -684,12 +694,18 @@
                                                 cache_expiration_time: t.form.cache_expiration_time + "",
                                                 cache_expiration_unit: t.form.cache_expiration_unit
                                             };
+                                            // console.log("Saving cache options:", params);
+                                            
                                             http.post("/api/admin/options/map_view/saving", params).then(function(res) {
+                                                // console.log("Save response:", res);
                                                 if (res.data.status === 200) {
                                                     t.$message.success("Saved successfully");
                                                 } else {
                                                     t.$message.error(res.data.message || "Save failed");
                                                 }
+                                            }).catch(function(e) {
+                                                console.error("Save error:", e);
+                                                t.$message.error("Network error or server error");
                                             }).finally(function() {
                                                 t.loading = false;
                                             });
