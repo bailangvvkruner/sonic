@@ -86,7 +86,17 @@ func initSQLite(conf *config.Config, gormLogger logger.Interface) (*gorm.DB, err
 		SkipDefaultTransaction:   true,
 		DisableNestedTransaction: true,
 	})
-	return db, err
+	if err != nil {
+		return nil, err
+	}
+	// Performance optimization for SQLite
+	// WAL mode improves concurrency and write performance
+	db.Exec("PRAGMA journal_mode = WAL")
+	// Normal synchronous mode is faster and safe enough for most applications
+	db.Exec("PRAGMA synchronous = NORMAL")
+	// Increase busy timeout to reduce "database is locked" errors
+	db.Exec("PRAGMA busy_timeout = 5000")
+	return db, nil
 }
 
 func dbMigrate() {
