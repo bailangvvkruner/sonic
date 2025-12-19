@@ -104,6 +104,22 @@ func initSQLite(conf *config.Config, gormLogger logger.Interface) (*gorm.DB, err
 	// Enable memory-mapped I/O for faster read performance
 	// Set mmap_size to a reasonable value (e.g., 256MB)
 	db.Exec("PRAGMA mmap_size = 268435456")
+
+	// Start a background goroutine to perform WAL checkpoint every 5 minutes
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			// PRAGMA wal_checkpoint(PASSIVE): checkpoint as many frames as possible without waiting for any database readers or writers to finish.
+			// This is non-blocking and safe to run periodically.
+			if err := db.Exec("PRAGMA wal_checkpoint(PASSIVE)").Error; err != nil {
+				sonicLog.Error("WAL checkpoint failed", zap.Error(err))
+			} else {
+				sonicLog.Info("WAL checkpoint executed successfully")
+			}
+		}
+	}()
+
 	return db, nil
 }
 
