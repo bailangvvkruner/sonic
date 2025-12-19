@@ -1,5 +1,6 @@
 package consts
 
+// Fix encoding
 import (
 	"database/sql/driver"
 	"strconv"
