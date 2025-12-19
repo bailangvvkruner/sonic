@@ -10,6 +10,7 @@ import (
 
 	"gorm.io/gen/field"
 
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/log"
@@ -25,9 +26,10 @@ type basePostServiceImpl struct {
 	OptionService      service.OptionService
 	BaseCommentService service.BaseCommentService
 	CounterCache       *util.CounterCache[int32]
+	PostCache          *cache.Cache // Add generic cache
 }
 
-func NewBasePostService(optionService service.OptionService, baseCommentService service.BaseCommentService) service.BasePostService {
+func NewBasePostService(optionService service.OptionService, baseCommentService service.BaseCommentService, cache cache.Cache) service.BasePostService {
 	counterCache := util.NewCounterCache(time.Second*5, nil, func(postID int32, count int64) {
 		ctx := context.Background()
 		postDAL := dal.GetQueryByCtx(ctx).Post
@@ -40,6 +42,7 @@ func NewBasePostService(optionService service.OptionService, baseCommentService 
 		CounterCache:       counterCache,
 		OptionService:      optionService,
 		BaseCommentService: baseCommentService,
+		PostCache:          &cache,
 	}
 	return b
 }
@@ -82,10 +85,25 @@ func (b basePostServiceImpl) GetByPostIDs(ctx context.Context, postIDs []int32) 
 }
 
 func (b basePostServiceImpl) GetBySlug(ctx context.Context, slug string) (*entity.Post, error) {
+	// Try to get from cache first
+	cacheKey := "post_slug:" + slug
+	if b.PostCache != nil {
+		if cachedPost, ok := (*b.PostCache).Get(cacheKey); ok {
+			if post, ok := cachedPost.(*entity.Post); ok {
+				return post, nil
+			}
+		}
+	}
+
 	postDAL := dal.GetQueryByCtx(ctx).Post
-	post, err := postDAL.WithContext(ctx).Where(postDAL.Slug.Eq(slug)).Take()
+	post, err := postDAL.WithContext(ctx).Where(postDAL.Slug.Eq(slug)).First()
 	if err != nil {
 		return nil, WrapDBErr(err)
+	}
+
+	// Set cache with short expiration (e.g., 1 minute)
+	if b.PostCache != nil {
+		(*b.PostCache).Set(cacheKey, post, time.Minute)
 	}
 	return post, nil
 }

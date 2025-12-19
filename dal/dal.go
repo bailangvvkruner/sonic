@@ -49,8 +49,8 @@ func NewGormDB(conf *config.Config, gormLogger logger.Interface) *gorm.DB {
 	if err != nil {
 		sonicLog.Fatal("get database connection error")
 	}
-	sqlDB.SetMaxIdleConns(200)
-	sqlDB.SetMaxOpenConns(300)
+	sqlDB.SetMaxIdleConns(20)
+	sqlDB.SetMaxOpenConns(50)
 	sqlDB.SetConnMaxIdleTime(time.Hour)
 	SetDefault(DB)
 	dbMigrate()
