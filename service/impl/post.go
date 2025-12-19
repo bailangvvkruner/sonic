@@ -52,6 +52,21 @@ func (p postServiceImpl) Page(ctx context.Context, postQuery param.PostQuery) ([
 	if postQuery.PageNum < 0 || postQuery.PageSize <= 0 {
 		return nil, 0, xerr.BadParam.New("").WithStatus(xerr.StatusBadRequest).WithMsg("Paging parameter error")
 	}
+
+	cacheKey := ""
+	if bytes, err := json.Marshal(postQuery); err == nil {
+		cacheKey = "posts:page:" + util.Md5Hex(string(bytes))
+		if cached, ok := p.Cache.Get(cacheKey); ok {
+			var result struct {
+				Posts []*entity.Post
+				Count int64
+			}
+			if err := json.Unmarshal(cached.([]byte), &result); err == nil {
+				return result.Posts, result.Count, nil
+			}
+		}
+	}
+
 	postDAL := dal.GetQueryByCtx(ctx).Post
 	postCategoryDAL := dal.GetQueryByCtx(ctx).PostCategory
 	postDo := postDAL.WithContext(ctx).Where(postDAL.Type.Eq(consts.PostTypePost))
@@ -81,6 +96,21 @@ func (p postServiceImpl) Page(ctx context.Context, postQuery param.PostQuery) ([
 	posts, totalCount, err := postDo.FindByPage(postQuery.PageNum*postQuery.PageSize, postQuery.PageSize)
 	if err != nil {
 		return nil, 0, WrapDBErr(err)
+	}
+	if cacheKey != "" {
+		result := struct {
+			Posts []*entity.Post
+			Count int64
+		}{
+			Posts: posts,
+			Count: totalCount,
+		}
+		if bytes, err := json.Marshal(result); err == nil {
+			duration, _ := p.OptionService.GetCacheDuration(ctx)
+			if duration > 0 {
+				p.Cache.Set(cacheKey, bytes, duration)
+			}
+		}
 	}
 	return posts, totalCount, nil
 }
@@ -164,6 +194,8 @@ func (p postServiceImpl) clearCache() {
 	p.Cache.DeleteByPrefix("tags_post_count:")
 	p.Cache.DeleteByPrefix("category_post_count:")
 	p.Cache.DeleteByPrefix("post_slug:")
+	p.Cache.DeleteByPrefix("posts:page:")
+	p.Cache.DeleteByPrefix("post_category:")
 }
 
 func (p postServiceImpl) ConvertParam(ctx context.Context, postParam *param.Post) (*entity.Post, error) {

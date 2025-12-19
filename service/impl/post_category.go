@@ -2,20 +2,30 @@ package impl
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"sort"
+	"strings"
 
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/model/entity"
 	"github.com/go-sonic/sonic/service"
+	"github.com/go-sonic/sonic/util"
 )
 
 type postCategoryServiceImpl struct {
 	CategoryService service.CategoryService
+	OptionService   service.OptionService
+	Cache           cache.Cache
 }
 
-func NewPostCategoryService(categoryService service.CategoryService) service.PostCategoryService {
+func NewPostCategoryService(categoryService service.CategoryService, optionService service.OptionService, cache cache.Cache) service.PostCategoryService {
 	return &postCategoryServiceImpl{
 		CategoryService: categoryService,
+		OptionService:   optionService,
+		Cache:           cache,
 	}
 }
 
@@ -33,6 +43,26 @@ func (p *postCategoryServiceImpl) ListCategoryMapByPostID(ctx context.Context, p
 	if len(postIDs) == 0 {
 		return result, nil
 	}
+
+	// Generate cache key
+	sortedIDs := make([]int, len(postIDs))
+	for i, id := range postIDs {
+		sortedIDs[i] = int(id)
+	}
+	sort.Ints(sortedIDs)
+	
+	sb := strings.Builder{}
+	for _, id := range sortedIDs {
+		sb.WriteString(fmt.Sprintf("%d,", id))
+	}
+	cacheKey := "post_category:map:" + util.Md5Hex(sb.String())
+
+	if cached, ok := p.Cache.Get(cacheKey); ok {
+		if err := json.Unmarshal(cached.([]byte), &result); err == nil {
+			return result, nil
+		}
+	}
+
 	postCategories, err := p.ListByPostIDs(ctx, postIDs)
 	if err != nil {
 		return nil, err
@@ -58,6 +88,13 @@ func (p *postCategoryServiceImpl) ListCategoryMapByPostID(ctx context.Context, p
 			continue
 		}
 		result[postCategory.PostID] = append(result[postCategory.PostID], category)
+	}
+
+	if bytes, err := json.Marshal(result); err == nil {
+		duration, _ := p.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			p.Cache.Set(cacheKey, bytes, duration)
+		}
 	}
 	return result, nil
 }

@@ -3,6 +3,10 @@ package impl
 import (
 	"context"
 
+	"encoding/json"
+	"fmt"
+
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/model/dto"
 	"github.com/go-sonic/sonic/model/entity"
@@ -12,10 +16,16 @@ import (
 	"github.com/go-sonic/sonic/util/xerr"
 )
 
-type menuServiceImpl struct{}
+type menuServiceImpl struct {
+	OptionService service.OptionService
+	Cache         cache.Cache
+}
 
-func NewMenuService() service.MenuService {
-	return &menuServiceImpl{}
+func NewMenuService(optionService service.OptionService, cache cache.Cache) service.MenuService {
+	return &menuServiceImpl{
+		OptionService: optionService,
+		Cache:         cache,
+	}
 }
 
 func (m *menuServiceImpl) DeleteBatch(ctx context.Context, ids []int32) error {
@@ -24,6 +34,7 @@ func (m *menuServiceImpl) DeleteBatch(ctx context.Context, ids []int32) error {
 	if err != nil {
 		return WrapDBErr(err)
 	}
+	m.Cache.DeleteByPrefix("menus:")
 	return nil
 }
 
@@ -56,6 +67,7 @@ func (m *menuServiceImpl) UpdateBatch(ctx context.Context, menuParams []*param.M
 	if err != nil {
 		return nil, err
 	}
+	m.Cache.DeleteByPrefix("menus:")
 	return menus, nil
 }
 
@@ -78,6 +90,7 @@ func (m *menuServiceImpl) CreateBatch(ctx context.Context, menuParams []*param.M
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	m.Cache.DeleteByPrefix("menus:")
 	return menus, nil
 }
 
@@ -90,6 +103,14 @@ func (m *menuServiceImpl) ListAsTree(ctx context.Context, sort *param.Sort) ([]*
 }
 
 func (m *menuServiceImpl) List(ctx context.Context, sort *param.Sort) ([]*entity.Menu, error) {
+	cacheKey := fmt.Sprintf("menus:list:%v", sort)
+	if cached, ok := m.Cache.Get(cacheKey); ok {
+		var menus []*entity.Menu
+		if err := json.Unmarshal(cached.([]byte), &menus); err == nil {
+			return menus, nil
+		}
+	}
+
 	menuDAL := dal.GetQueryByCtx(ctx).Menu
 	menuDO := menuDAL.WithContext(ctx)
 	err := BuildSort(sort, &menuDAL, &menuDO)
@@ -100,10 +121,24 @@ func (m *menuServiceImpl) List(ctx context.Context, sort *param.Sort) ([]*entity
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	if bytes, err := json.Marshal(menus); err == nil {
+		duration, _ := m.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			m.Cache.Set(cacheKey, bytes, duration)
+		}
+	}
 	return menus, nil
 }
 
 func (m *menuServiceImpl) ListByTeam(ctx context.Context, team string, sort *param.Sort) ([]*entity.Menu, error) {
+	cacheKey := fmt.Sprintf("menus:team:%s:%v", team, sort)
+	if cached, ok := m.Cache.Get(cacheKey); ok {
+		var menus []*entity.Menu
+		if err := json.Unmarshal(cached.([]byte), &menus); err == nil {
+			return menus, nil
+		}
+	}
+
 	menuDAL := dal.GetQueryByCtx(ctx).Menu
 	menuDO := menuDAL.WithContext(ctx)
 	err := BuildSort(sort, &menuDAL, &menuDO)
@@ -113,6 +148,12 @@ func (m *menuServiceImpl) ListByTeam(ctx context.Context, team string, sort *par
 	menus, err := menuDO.Where(menuDAL.Team.Eq(team)).Find()
 	if err != nil {
 		return nil, WrapDBErr(err)
+	}
+	if bytes, err := json.Marshal(menus); err == nil {
+		duration, _ := m.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			m.Cache.Set(cacheKey, bytes, duration)
+		}
 	}
 	return menus, nil
 }
@@ -155,6 +196,7 @@ func (m *menuServiceImpl) Create(ctx context.Context, menuParam *param.Menu) (*e
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	m.Cache.DeleteByPrefix("menus:")
 	return menu, nil
 }
 
@@ -179,6 +221,7 @@ func (m *menuServiceImpl) Update(ctx context.Context, id int32, menuParam *param
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	m.Cache.DeleteByPrefix("menus:")
 	return menu, nil
 }
 
@@ -191,6 +234,7 @@ func (m *menuServiceImpl) Delete(ctx context.Context, id int32) error {
 	if deleteResult.RowsAffected != 1 {
 		return xerr.DB.New("delete menu failed id=%d", id).WithStatus(xerr.StatusInternalServerError)
 	}
+	m.Cache.DeleteByPrefix("menus:")
 	return nil
 }
 
