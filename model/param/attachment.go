@@ -4,9 +4,9 @@ import "github.com/go-sonic/sonic/consts"
 
 type AttachmentQuery struct {
 	Pagination
-	Keyword        string                 `json:"keyword" form:"keyword"`
-	MediaType      string                 `json:"mediaType" form:"mediaType"`
-	AttachmentType *consts.AttachmentType `json:"attachmentType" form:"attachmentType"`
+	Keyword        string                 `json:"keyword" form:"keyword" query:"keyword"`
+	MediaType      string                 `json:"mediaType" form:"mediaType" query:"mediaType"`
+	AttachmentType *consts.AttachmentType `json:"attachmentType" form:"attachmentType" query:"attachmentType"`
 }
 
 type AttachmentUpdate struct {

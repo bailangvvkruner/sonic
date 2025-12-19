@@ -46,10 +46,10 @@ func (s *SheetHandler) GetSheetByID(ctx *fiber.Ctx) (interface{}, error) {
 func (s *SheetHandler) ListSheet(ctx *fiber.Ctx) (interface{}, error) {
 	type SheetParam struct {
 		param.Pagination
-		Sort string `json:"sort"`
+		Sort string `json:"sort" query:"sort"`
 	}
 	var sheetParam SheetParam
-	err := ctx.BodyParser(&sheetParam)
+	err := ctx.QueryParser(&sheetParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}

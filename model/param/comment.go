@@ -5,10 +5,10 @@ import "github.com/go-sonic/sonic/consts"
 type CommentQuery struct {
 	Pagination
 	Sort
-	ContentID     *int32
-	Keyword       *string               `json:"keyword" form:"keyword"`
-	CommentStatus *consts.CommentStatus `json:"status" form:"status"`
-	ParentID      *int32                `json:"parentID" form:"parentID"`
+	ContentID     *int32                `json:"contentId" form:"contentId" query:"contentId"`
+	Keyword       *string               `json:"keyword" form:"keyword" query:"keyword"`
+	CommentStatus *consts.CommentStatus `json:"status" form:"status" query:"status"`
+	ParentID      *int32                `json:"parentID" form:"parentID" query:"parentID"`
 }
 
 type Comment struct {
