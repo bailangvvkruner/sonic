@@ -604,59 +604,98 @@
                                 path: "/system/cache",
                                 name: "CacheOptions",
                                 component: {
-                                    template: '<div class="cache-options" style="padding: 24px;"><a-card title="全局缓存设置" :bordered="false"><a-alert message="缓存说明" description="开启缓存可以显著提高网站访问速度，但会导致内容更新有一定的延迟。建议设置合理的缓存时间。" type="info" show-icon style="margin-bottom: 24px;" /><a-form-model :model="form" :label-col="{ span: 4 }" :wrapper-col="{ span: 10 }"><a-form-model-item label="开启缓存"><a-switch v-model="form.cache_enabled" checked-children="开" un-checked-children="关" /></a-form-model-item><a-form-model-item label="缓存时间" v-if="form.cache_enabled" help="设置缓存过期时间，过期后将自动刷新缓存"><a-input-number v-model="form.cache_expiration_time" :min="1" style="margin-right: 10px; width: 120px" /><a-select v-model="form.cache_expiration_unit" style="width: 100px"><a-select-option value="MINUTE">分钟</a-select-option><a-select-option value="HOUR">小时</a-select-option><a-select-option value="DAY">天</a-select-option></a-select></a-form-model-item><a-form-model-item :wrapper-col="{ span: 10, offset: 4 }"><a-button type="primary" @click="save" :loading="loading">保存设置</a-button></a-form-model-item></a-form-model></a-card></div>',
+                                    render: function(h) {
+                                        var t = this;
+                                        return h('div', { style: { padding: '24px' } }, [
+                                            h('a-card', { props: { title: 'Global Cache Settings', bordered: false } }, [
+                                                h('a-alert', {
+                                                    props: { message: 'Cache Info', description: 'Enabling cache improves performance but may delay updates.', type: 'info', showIcon: true },
+                                                    style: { marginBottom: '24px' }
+                                                }),
+                                                h('a-form-model', { props: { model: t.form, labelCol: { span: 4 }, wrapperCol: { span: 10 } } }, [
+                                                    h('a-form-model-item', { props: { label: 'Enable Cache' } }, [
+                                                        h('a-switch', {
+                                                            props: { checked: t.form.cache_enabled, checkedChildren: 'ON', unCheckedChildren: 'OFF' },
+                                                            on: { change: function(v) { t.form.cache_enabled = v } }
+                                                        })
+                                                    ]),
+                                                    t.form.cache_enabled ? h('div', [
+                                                        h('a-form-model-item', { props: { label: 'Cache Duration' } }, [
+                                                            h('a-input-number', {
+                                                                props: { value: t.form.cache_expiration_time, min: 1 },
+                                                                on: { change: function(v) { t.form.cache_expiration_time = v } },
+                                                                style: { marginRight: '10px', width: '120px' }
+                                                            }),
+                                                            h('a-select', {
+                                                                props: { value: t.form.cache_expiration_unit },
+                                                                on: { change: function(v) { t.form.cache_expiration_unit = v } },
+                                                                style: { width: '100px' }
+                                                            }, [
+                                                                h('a-select-option', { props: { value: 'MINUTE' } }, 'Minutes'),
+                                                                h('a-select-option', { props: { value: 'HOUR' } }, 'Hours'),
+                                                                h('a-select-option', { props: { value: 'DAY' } }, 'Days')
+                                                            ])
+                                                        ])
+                                                    ]) : null,
+                                                    h('a-form-model-item', { props: { wrapperCol: { span: 10, offset: 4 } } }, [
+                                                        h('a-button', {
+                                                            props: { type: 'primary', loading: t.loading },
+                                                            on: { click: t.save }
+                                                        }, 'Save Settings')
+                                                    ])
+                                                ])
+                                            ])
+                                        ]);
+                                    },
                                     data: function() {
                                         return {
-                                            loading: !1,
+                                            loading: false,
                                             form: {
-                                                cache_enabled: !1,
+                                                cache_enabled: false,
                                                 cache_expiration_time: 10,
                                                 cache_expiration_unit: "MINUTE"
                                             }
-                                        }
+                                        };
                                     },
                                     created: function() {
-                                        this.fetchData()
+                                        this.fetchData();
                                     },
                                     methods: {
                                         fetchData: function() {
                                             var t = this;
-                                            var h = t.$http || t.axios || window.axios;
-                                            if (h) {
-                                                h.get("/api/admin/options/map_view").then(function(r) {
-                                                    var d = r.data;
+                                            var http = t.$http || t.axios || window.axios;
+                                            if (http) {
+                                                http.get("/api/admin/options/map_view").then(function(res) {
+                                                    var d = res.data;
                                                     if (d.status && d.status !== 200) return;
-                                                    var m = d.data || d;
-                                                    t.form.cache_enabled = m.cache_enabled === "true";
-                                                    t.form.cache_expiration_time = parseInt(m.cache_expiration_time) || 10;
-                                                    t.form.cache_expiration_unit = m.cache_expiration_unit || "MINUTE"
-                                                })
+                                                    var data = d.data || d;
+                                                    t.form.cache_enabled = data.cache_enabled === "true";
+                                                    t.form.cache_expiration_time = parseInt(data.cache_expiration_time) || 10;
+                                                    t.form.cache_expiration_unit = data.cache_expiration_unit || "MINUTE";
+                                                });
                                             }
                                         },
                                         save: function() {
                                             var t = this;
-                                            t.loading = !0;
-                                            var h = t.$http || t.axios || window.axios;
-                                            var p = {
+                                            t.loading = true;
+                                            var http = t.$http || t.axios || window.axios;
+                                            var params = {
                                                 cache_enabled: t.form.cache_enabled + "",
                                                 cache_expiration_time: t.form.cache_expiration_time + "",
                                                 cache_expiration_unit: t.form.cache_expiration_unit
                                             };
-                                            h.post("/api/admin/options/map_view/saving", p).then(function(r) {
-                                                if (r.data.status === 200) {
-                                                    t.$message.success("保存成功")
+                                            http.post("/api/admin/options/map_view/saving", params).then(function(res) {
+                                                if (res.data.status === 200) {
+                                                    t.$message.success("Saved successfully");
                                                 } else {
-                                                    t.$message.error(r.data.message || "保存失败")
+                                                    t.$message.error(res.data.message || "Save failed");
                                                 }
-                                            }).catch(function() {
-                                                t.$message.error("保存失败")
                                             }).finally(function() {
-                                                t.loading = !1
-                                            })
+                                                t.loading = false;
+                                            });
                                         }
                                     }
-                                },
-                                meta: {
+                                },meta: {
                                     title: "缓存",
                                     hiddenHeaderContent: !1
                                 }
