@@ -2,9 +2,12 @@ package impl
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"gorm.io/gen/field"
 
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/event"
@@ -20,6 +23,7 @@ type baseCommentServiceImpl struct {
 	UserService   service.UserService
 	OptionService service.OptionService
 	Event         event.Bus
+	Cache         cache.Cache
 }
 
 func (b baseCommentServiceImpl) LGetByIDs(ctx context.Context, commentIDs []int32) ([]*entity.Comment, error) {
@@ -28,11 +32,12 @@ func (b baseCommentServiceImpl) LGetByIDs(ctx context.Context, commentIDs []int3
 	return comments, WrapDBErr(err)
 }
 
-func NewBaseCommentService(userService service.UserService, optionService service.OptionService, event event.Bus) service.BaseCommentService {
+func NewBaseCommentService(userService service.UserService, optionService service.OptionService, event event.Bus, cache cache.Cache) service.BaseCommentService {
 	return &baseCommentServiceImpl{
 		UserService:   userService,
 		OptionService: optionService,
 		Event:         event,
+		Cache:         cache,
 	}
 }
 
@@ -111,6 +116,7 @@ func (b baseCommentServiceImpl) DeleteBatch(ctx context.Context, commentIDs []in
 	if deleteResult.RowsAffected != int64(len(commentIDs)) {
 		return xerr.NoType.New("").WithMsg("delete comment failed")
 	}
+	b.Cache.DeleteByPrefix("comment_count:")
 	return nil
 }
 
@@ -123,6 +129,7 @@ func (b baseCommentServiceImpl) Delete(ctx context.Context, commentID int32) err
 	if deleteResult.RowsAffected != 1 {
 		return xerr.NoType.New("").WithMsg("delete comment failed")
 	}
+	b.Cache.DeleteByPrefix("comment_count:")
 	return nil
 }
 
@@ -136,6 +143,7 @@ func (b baseCommentServiceImpl) UpdateStatusBatch(ctx context.Context, commentID
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	b.Cache.DeleteByPrefix("comment_count:")
 	return comments, nil
 }
 
@@ -160,6 +168,7 @@ func (b baseCommentServiceImpl) UpdateStatus(ctx context.Context, commentID int3
 			})
 		}()
 	}
+	b.Cache.DeleteByPrefix("comment_count:")
 	return comment, nil
 }
 
@@ -226,6 +235,7 @@ func (b baseCommentServiceImpl) Create(ctx context.Context, comment *entity.Comm
 			})
 		}()
 	}
+	b.Cache.DeleteByPrefix("comment_count:")
 	return comment, nil
 }
 
@@ -269,10 +279,24 @@ func (b baseCommentServiceImpl) ConvertParam(commentParam *param.Comment) *entit
 }
 
 func (b baseCommentServiceImpl) CountByContentID(ctx context.Context, contentID int32, commentType consts.CommentType, status consts.CommentStatus) (int64, error) {
+	cacheKey := fmt.Sprintf("comment_count:%d:%d:%d", contentID, commentType, status)
+	if cached, ok := b.Cache.Get(cacheKey); ok {
+		var count int64
+		if err := json.Unmarshal(cached.([]byte), &count); err == nil {
+			return count, nil
+		}
+	}
+
 	postCommentDAL := dal.GetQueryByCtx(ctx).Comment
 	count, err := postCommentDAL.WithContext(ctx).Where(postCommentDAL.PostID.Eq(contentID), postCommentDAL.Type.Eq(commentType), postCommentDAL.Status.Eq(status)).Count()
 	if err != nil {
 		return 0, WrapDBErr(err)
+	}
+	if bytes, err := json.Marshal(count); err == nil {
+		duration, _ := b.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			b.Cache.Set(cacheKey, bytes, duration)
+		}
 	}
 	return count, nil
 }

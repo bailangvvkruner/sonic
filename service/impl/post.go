@@ -3,7 +3,9 @@ package impl
 import (
 	"context"
 	"database/sql/driver"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
@@ -119,6 +121,7 @@ func (p postServiceImpl) Create(ctx context.Context, postParam *param.Post) (*en
 		Content:   post.Title,
 		IPAddress: util.GetClientIP(ctx),
 	})
+	p.clearCache()
 	return post, nil
 }
 
@@ -150,7 +153,17 @@ func (p postServiceImpl) Update(ctx context.Context, postID int32, postParam *pa
 		Content:   post.Title,
 		IPAddress: util.GetClientIP(ctx),
 	})
+	p.clearCache()
 	return post, nil
+}
+
+func (p postServiceImpl) clearCache() {
+	p.Cache.DeleteByPrefix("post_prev:")
+	p.Cache.DeleteByPrefix("post_next:")
+	p.Cache.DeleteByPrefix("post_tags:")
+	p.Cache.DeleteByPrefix("tags_post_count:")
+	p.Cache.DeleteByPrefix("category_post_count:")
+	p.Cache.DeleteByPrefix("post_slug:")
 }
 
 func (p postServiceImpl) ConvertParam(ctx context.Context, postParam *param.Post) (*entity.Post, error) {
@@ -213,7 +226,7 @@ func (p postServiceImpl) Preview(ctx context.Context, postID int32) (string, err
 	token := util.GenUUIDWithOutDash()
 	p.Cache.Set(token, token, time.Minute*10)
 
-	previewURL := strings.Builder{}
+	var previewURL strings.Builder
 
 	isEnabledAbsolutePath, err := p.OptionService.IsEnabledAbsolutePath(ctx)
 	if err != nil {
@@ -259,6 +272,14 @@ func (p postServiceImpl) CountLike(ctx context.Context) (int64, error) {
 }
 
 func (p postServiceImpl) GetPrevPosts(ctx context.Context, post *entity.Post, size int) ([]*entity.Post, error) {
+	cacheKey := fmt.Sprintf("post_prev:%d", post.ID)
+	if cached, ok := p.Cache.Get(cacheKey); ok {
+		var posts []*entity.Post
+		if err := json.Unmarshal(cached.([]byte), &posts); err == nil {
+			return posts, nil
+		}
+	}
+
 	postSort := p.OptionService.GetOrByDefault(ctx, property.IndexSort)
 	postDAL := dal.GetQueryByCtx(ctx).Post
 	postDO := postDAL.WithContext(ctx).Where(postDAL.Status.Eq(consts.PostStatusPublished), postDAL.Type.Eq(consts.PostTypePost))
@@ -285,10 +306,56 @@ func (p postServiceImpl) GetPrevPosts(ctx context.Context, post *entity.Post, si
 		}
 		return nil, WrapDBErr(err)
 	}
+	if bytes, err := json.Marshal(posts); err == nil {
+		duration, _ := p.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			p.Cache.Set(cacheKey, bytes, duration)
+		}
+	}
 	return posts, nil
 }
 
+func (p postServiceImpl) Delete(ctx context.Context, postID int32) error {
+	err := p.BasePostService.Delete(ctx, postID)
+	if err == nil {
+		p.clearCache()
+	}
+	return err
+}
+
+func (p postServiceImpl) DeleteBatch(ctx context.Context, postIDs []int32) error {
+	err := p.BasePostService.DeleteBatch(ctx, postIDs)
+	if err == nil {
+		p.clearCache()
+	}
+	return err
+}
+
+func (p postServiceImpl) UpdateStatus(ctx context.Context, postID int32, status consts.PostStatus) (*entity.Post, error) {
+	post, err := p.BasePostService.UpdateStatus(ctx, postID, status)
+	if err == nil {
+		p.clearCache()
+	}
+	return post, err
+}
+
+func (p postServiceImpl) UpdateStatusBatch(ctx context.Context, status consts.PostStatus, postIDs []int32) ([]*entity.Post, error) {
+	posts, err := p.BasePostService.UpdateStatusBatch(ctx, status, postIDs)
+	if err == nil {
+		p.clearCache()
+	}
+	return posts, err
+}
+
 func (p postServiceImpl) GetNextPosts(ctx context.Context, post *entity.Post, size int) ([]*entity.Post, error) {
+	cacheKey := fmt.Sprintf("post_next:%d", post.ID)
+	if cached, ok := p.Cache.Get(cacheKey); ok {
+		var posts []*entity.Post
+		if err := json.Unmarshal(cached.([]byte), &posts); err == nil {
+			return posts, nil
+		}
+	}
+
 	postSort := p.OptionService.GetOrByDefault(ctx, property.IndexSort)
 	postDAL := dal.GetQueryByCtx(ctx).Post
 	postDO := postDAL.WithContext(ctx).Where(postDAL.Status.Eq(consts.PostStatusPublished), postDAL.Type.Eq(consts.PostTypePost))
@@ -311,6 +378,12 @@ func (p postServiceImpl) GetNextPosts(ctx context.Context, post *entity.Post, si
 	posts, err := postDO.Find()
 	if err != nil {
 		return nil, WrapDBErr(err)
+	}
+	if bytes, err := json.Marshal(posts); err == nil {
+		duration, _ := p.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			p.Cache.Set(cacheKey, bytes, duration)
+		}
 	}
 	return posts, nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"strings"
 
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/model/dto"
@@ -17,11 +18,13 @@ import (
 
 type tagServiceImpl struct {
 	OptionService service.OptionService
+	Cache         cache.Cache
 }
 
-func NewTagService(optionService service.OptionService) service.TagService {
+func NewTagService(optionService service.OptionService, cache cache.Cache) service.TagService {
 	return &tagServiceImpl{
 		OptionService: optionService,
+		Cache:         cache,
 	}
 }
 
@@ -57,6 +60,7 @@ func (t tagServiceImpl) Create(ctx context.Context, tagParam *param.Tag) (*entit
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	t.Cache.DeleteByPrefix("tags_post_count:")
 	return tag, nil
 }
 
@@ -86,6 +90,7 @@ func (t tagServiceImpl) Update(ctx context.Context, id int32, tagParam *param.Ta
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	t.Cache.DeleteByPrefix("tags_post_count:")
 	return tag, nil
 }
 
@@ -102,6 +107,9 @@ func (t tagServiceImpl) Delete(ctx context.Context, id int32) error {
 		return err
 	})
 
+	if err == nil {
+		t.Cache.DeleteByPrefix("tags_post_count:")
+	}
 	return err
 }
 

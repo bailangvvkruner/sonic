@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/model/dto"
@@ -33,6 +34,7 @@ type OptionService interface {
 	GetSheetPrefix(ctx context.Context) (string, error)
 	GetAttachmentType(ctx context.Context) consts.AttachmentType
 	GetAdminURLPath(ctx context.Context) (string, error)
+	GetCacheDuration(ctx context.Context) (time.Duration, error)
 }
 
 type ClientOptionService interface {

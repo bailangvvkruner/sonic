@@ -3,7 +3,10 @@ package impl
 import (
 	"context"
 	"database/sql/driver"
+	"encoding/json"
+	"fmt"
 
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/model/dto"
@@ -14,7 +17,9 @@ import (
 )
 
 type postTagServiceImpl struct {
-	TagService service.TagService
+	TagService    service.TagService
+	Cache         cache.Cache
+	OptionService service.OptionService
 }
 
 func (p *postTagServiceImpl) PagePost(ctx context.Context, postQuery param.PostQuery) ([]*entity.Post, int64, error) {
@@ -50,9 +55,11 @@ func (p *postTagServiceImpl) PagePost(ctx context.Context, postQuery param.PostQ
 	return posts, totalCount, nil
 }
 
-func NewPostTagService(tagService service.TagService) service.PostTagService {
+func NewPostTagService(tagService service.TagService, cache cache.Cache, optionService service.OptionService) service.PostTagService {
 	return &postTagServiceImpl{
-		TagService: tagService,
+		TagService:    tagService,
+		Cache:         cache,
+		OptionService: optionService,
 	}
 }
 
@@ -100,16 +107,38 @@ func (p postTagServiceImpl) ListTagMapByPostID(ctx context.Context, postIDs []in
 }
 
 func (p postTagServiceImpl) ListTagByPostID(ctx context.Context, postID int32) ([]*entity.Tag, error) {
+	cacheKey := fmt.Sprintf("post_tags:%d", postID)
+	if cached, ok := p.Cache.Get(cacheKey); ok {
+		var tags []*entity.Tag
+		if err := json.Unmarshal(cached.([]byte), &tags); err == nil {
+			return tags, nil
+		}
+	}
+
 	postTagDAL := dal.GetQueryByCtx(ctx).PostTag
 	tagDAL := dal.GetQueryByCtx(ctx).Tag
 	tags, err := tagDAL.WithContext(ctx).Join(&entity.PostTag{}, tagDAL.ID.EqCol(postTagDAL.TagID)).Where(postTagDAL.PostID.Eq(postID)).Find()
 	if err != nil {
 		return nil, err
 	}
+	if bytes, err := json.Marshal(tags); err == nil {
+		duration, _ := p.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			p.Cache.Set(cacheKey, bytes, duration)
+		}
+	}
 	return tags, nil
 }
 
 func (p postTagServiceImpl) ListAllTagWithPostCount(ctx context.Context, sort *param.Sort) ([]*dto.TagWithPostCount, error) {
+	cacheKey := fmt.Sprintf("tags_post_count:%v", sort)
+	if cached, ok := p.Cache.Get(cacheKey); ok {
+		var res []*dto.TagWithPostCount
+		if err := json.Unmarshal(cached.([]byte), &res); err == nil {
+			return res, nil
+		}
+	}
+
 	postTagDAL := dal.GetQueryByCtx(ctx).PostTag
 	tagDAL := dal.GetQueryByCtx(ctx).Tag
 	tagDo := tagDAL.WithContext(ctx)
@@ -149,6 +178,12 @@ func (p postTagServiceImpl) ListAllTagWithPostCount(ctx context.Context, sort *p
 		res[i] = &dto.TagWithPostCount{
 			Tag:       tagDTO,
 			PostCount: tagWithPostCount.PostCount,
+		}
+	}
+	if bytes, err := json.Marshal(res); err == nil {
+		duration, _ := p.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			p.Cache.Set(cacheKey, bytes, duration)
 		}
 	}
 	return res, nil

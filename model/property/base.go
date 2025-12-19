@@ -147,4 +147,7 @@ var AllProperty = []Property{
 	PhotoPageSize,
 	JournalPageSize,
 	JWTSecret,
+	CacheEnabled,
+	CacheExpirationTime,
+	CacheExpirationUnit,
 }

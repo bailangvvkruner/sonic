@@ -48,4 +48,19 @@ var (
 		KeyValue:     "jwt_secret",
 		Kind:         reflect.String,
 	}
+	CacheEnabled = Property{
+		DefaultValue: true,
+		KeyValue:     "cache_enabled",
+		Kind:         reflect.Bool,
+	}
+	CacheExpirationTime = Property{
+		DefaultValue: 10,
+		KeyValue:     "cache_expiration_time",
+		Kind:         reflect.Int,
+	}
+	CacheExpirationUnit = Property{
+		DefaultValue: "MINUTE",
+		KeyValue:     "cache_expiration_unit",
+		Kind:         reflect.String,
+	}
 )

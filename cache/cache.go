@@ -12,6 +12,7 @@ type Cache interface {
 	Get(key string) (interface{}, bool)
 	Delete(key string)
 	BatchDelete(keys []string)
+	DeleteByPrefix(prefix string)
 }
 
 var _ Cache = &cacheImpl{}
@@ -48,5 +49,14 @@ func (c *cacheImpl) Delete(key string) {
 func (c *cacheImpl) BatchDelete(keys []string) {
 	for _, key := range keys {
 		c.Delete(key)
+	}
+}
+
+func (c *cacheImpl) DeleteByPrefix(prefix string) {
+	items := c.goCache.Items()
+	for key := range items {
+		if len(key) >= len(prefix) && key[0:len(prefix)] == prefix {
+			c.goCache.Delete(key)
+		}
 	}
 }

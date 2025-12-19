@@ -2,10 +2,13 @@ package impl
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"strings"
 
 	"gorm.io/gen/field"
 
+	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
 	"github.com/go-sonic/sonic/dal"
 	"github.com/go-sonic/sonic/model/dto"
@@ -21,18 +24,37 @@ import (
 
 type categoryServiceImpl struct {
 	OptionService service.OptionService
+	Cache         cache.Cache
 }
 
-func NewCategoryService(optionService service.OptionService) service.CategoryService {
+func NewCategoryService(optionService service.OptionService, cache cache.Cache) service.CategoryService {
 	return &categoryServiceImpl{
 		OptionService: optionService,
+		Cache:         cache,
 	}
 }
 
 func (c categoryServiceImpl) GetByID(ctx context.Context, id int32) (*entity.Category, error) {
+	cacheKey := fmt.Sprintf("category:%d", id)
+	if cached, ok := c.Cache.Get(cacheKey); ok {
+		var category *entity.Category
+		if err := json.Unmarshal(cached.([]byte), &category); err == nil {
+			return category, nil
+		}
+	}
+
 	categoryDAL := dal.GetQueryByCtx(ctx).Category
 	category, err := categoryDAL.WithContext(ctx).Where(categoryDAL.ID.Eq(id)).Take()
-	return category, WrapDBErr(err)
+	if err != nil {
+		return nil, WrapDBErr(err)
+	}
+	if bytes, err := json.Marshal(category); err == nil {
+		duration, _ := c.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			c.Cache.Set(cacheKey, bytes, duration)
+		}
+	}
+	return category, nil
 }
 
 func (c categoryServiceImpl) GetBySlug(ctx context.Context, slug string) (*entity.Category, error) {
@@ -48,6 +70,14 @@ func (c categoryServiceImpl) GetByName(ctx context.Context, name string) (*entit
 }
 
 func (c categoryServiceImpl) ListCategoryWithPostCountDTO(ctx context.Context, sort *param.Sort) ([]*dto.CategoryWithPostCount, error) {
+	cacheKey := fmt.Sprintf("category_post_count:%v", sort)
+	if cached, ok := c.Cache.Get(cacheKey); ok {
+		var res []*dto.CategoryWithPostCount
+		if err := json.Unmarshal(cached.([]byte), &res); err == nil {
+			return res, nil
+		}
+	}
+
 	categoryDAL := dal.GetQueryByCtx(ctx).Category
 	categoryDO := categoryDAL.WithContext(ctx)
 
@@ -80,6 +110,12 @@ func (c categoryServiceImpl) ListCategoryWithPostCountDTO(ctx context.Context, s
 			CategoryDTO: categoryDTO,
 			PostCount:   postCountMap[category.ID],
 		})
+	}
+	if bytes, err := json.Marshal(results); err == nil {
+		duration, _ := c.OptionService.GetCacheDuration(ctx)
+		if duration > 0 {
+			c.Cache.Set(cacheKey, bytes, duration)
+		}
 	}
 	return results, nil
 }
@@ -275,6 +311,7 @@ func (c categoryServiceImpl) Create(ctx context.Context, categoryParam *param.Ca
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	c.Cache.DeleteByPrefix("category_post_count:")
 	return category, nil
 }
 
@@ -286,6 +323,10 @@ func (c *categoryServiceImpl) Update(ctx context.Context, categoryParam *param.C
 
 	categoryDAL := dal.GetQueryByCtx(ctx).Category
 	category, err := categoryDAL.WithContext(ctx).Where(categoryDAL.ID.Eq(categoryParam.ID)).First()
+	if err == nil {
+		c.Cache.DeleteByPrefix(fmt.Sprintf("category:%d", categoryParam.ID))
+		c.Cache.DeleteByPrefix("category_post_count:")
+	}
 	return category, WrapDBErr(err)
 }
 
@@ -304,11 +345,18 @@ func (c categoryServiceImpl) UpdateBatch(ctx context.Context, categoryParams []*
 	if err != nil {
 		return nil, WrapDBErr(err)
 	}
+	c.Cache.DeleteByPrefix("category:")
+	c.Cache.DeleteByPrefix("category_post_count:")
 	return categories, nil
 }
 
 func (c categoryServiceImpl) Delete(ctx context.Context, categoryID int32) (err error) {
-	return newCategoryUpdateExecutor(ctx).Delete(ctx, categoryID)
+	err = newCategoryUpdateExecutor(ctx).Delete(ctx, categoryID)
+	if err == nil {
+		c.Cache.DeleteByPrefix("category:")
+		c.Cache.DeleteByPrefix("category_post_count:")
+	}
+	return err
 }
 
 func (c categoryServiceImpl) ListByIDs(ctx context.Context, categoryIDs []int32) ([]*entity.Category, error) {

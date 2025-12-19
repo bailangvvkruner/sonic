@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -472,4 +473,33 @@ func (o *optionServiceImpl) GetAttachmentType(ctx context.Context) consts.Attach
 
 func (o *optionServiceImpl) GetAdminURLPath(ctx context.Context) (string, error) {
 	return o.Config.Sonic.AdminURLPath, nil
+}
+
+func (o *optionServiceImpl) GetCacheDuration(ctx context.Context) (time.Duration, error) {
+	enabled, err := o.GetOrByDefaultWithErr(ctx, property.CacheEnabled, true)
+	if err != nil {
+		return 0, err
+	}
+	if !enabled.(bool) {
+		return 0, nil
+	}
+	expiration, err := o.GetOrByDefaultWithErr(ctx, property.CacheExpirationTime, 10)
+	if err != nil {
+		return 0, err
+	}
+	unit, err := o.GetOrByDefaultWithErr(ctx, property.CacheExpirationUnit, "MINUTE")
+	if err != nil {
+		return 0, err
+	}
+	duration := time.Duration(expiration.(int))
+	switch unit.(string) {
+	case "SECOND":
+		return duration * time.Second, nil
+	case "MINUTE":
+		return duration * time.Minute, nil
+	case "HOUR":
+		return duration * time.Hour, nil
+	default:
+		return duration * time.Minute, nil
+	}
 }
