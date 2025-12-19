@@ -123,6 +123,6 @@ func GetGormLogLevel(level string) logger.LogLevel {
 	case "silent":
 		return logger.Silent
 	default:
-		panic("log level error")
+		return logger.Info
 	}
 }

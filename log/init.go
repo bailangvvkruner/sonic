@@ -27,7 +27,9 @@ func NewLogger(conf *config.Config) *zap.Logger {
 	if config.LogToConsole() {
 		core = zapcore.NewCore(getDevEncoder(), os.Stdout, getLogLevel(conf.Log.Levels.App))
 	} else {
-		core = zapcore.NewCore(getProdEncoder(), getWriter(conf), getLogLevel(conf.Log.Levels.App))
+		// Force output to stdout for Docker environment or when file logging is not strictly required
+		// This makes logs accessible via `docker logs`
+		core = zapcore.NewCore(getProdEncoder(), zapcore.AddSync(os.Stdout), getLogLevel(conf.Log.Levels.App))
 	}
 
 	// 传入 zap.AddCaller() 显示打日志点的文件名和行号
@@ -74,6 +76,6 @@ func getLogLevel(level string) zapcore.Level {
 	case "error":
 		return zapcore.ErrorLevel
 	default:
-		panic("log level error")
+		return zapcore.InfoLevel
 	}
 }
