@@ -689,26 +689,42 @@
                                             var t = this;
                                             t.loading = true;
                                             var http = t.$http || t.axios || window.axios;
+                                            
+                                            // Fallback if no axios found, try to use native fetch or XMLHttpRequest
+                                            if (!http) {
+                                                 console.error("No HTTP client found!");
+                                                 t.$message.error("System Error: No HTTP client");
+                                                 t.loading = false;
+                                                 return;
+                                            }
+
                                             var params = {
                                                 cache_enabled: t.form.cache_enabled + "",
                                                 cache_expiration_time: t.form.cache_expiration_time + "",
                                                 cache_expiration_unit: t.form.cache_expiration_unit
                                             };
-                                            // console.log("Saving cache options:", params);
                                             
-                                            http.post("/api/admin/options/map_view/saving", params).then(function(res) {
-                                                // console.log("Save response:", res);
-                                                if (res.data.status === 200) {
-                                                    t.$message.success("Saved successfully");
-                                                } else {
-                                                    t.$message.error(res.data.message || "Save failed");
-                                                }
-                                            }).catch(function(e) {
-                                                console.error("Save error:", e);
-                                                t.$message.error("Network error or server error");
-                                            }).finally(function() {
+                                            try {
+                                                http.post("/api/admin/options/map_view/saving", params).then(function(res) {
+                                                    if (res.data.status === 200) {
+                                                        t.$message.success("Saved successfully");
+                                                    } else {
+                                                        t.$message.error(res.data.message || "Save failed");
+                                                    }
+                                                    t.loading = false;
+                                                }, function(err) {
+                                                    console.error("Save rejected:", err);
+                                                    t.$message.error("Save failed (Network)");
+                                                    t.loading = false;
+                                                }).catch(function(e) {
+                                                    console.error("Save error:", e);
+                                                    t.$message.error("System Error");
+                                                    t.loading = false;
+                                                });
+                                            } catch (e) {
+                                                console.error("Synchronous error:", e);
                                                 t.loading = false;
-                                            });
+                                            }
                                         }
                                     }
                                 },meta: {
