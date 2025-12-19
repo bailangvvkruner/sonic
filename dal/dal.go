@@ -96,6 +96,14 @@ func initSQLite(conf *config.Config, gormLogger logger.Interface) (*gorm.DB, err
 	db.Exec("PRAGMA synchronous = NORMAL")
 	// Increase busy timeout to reduce "database is locked" errors
 	db.Exec("PRAGMA busy_timeout = 5000")
+	// Memory optimization: Use memory as temporary storage
+	db.Exec("PRAGMA temp_store = MEMORY")
+	// Increase cache size (negative value is in KB), e.g., -64000 = 64MB
+	// Adjust this value based on your available memory
+	db.Exec("PRAGMA cache_size = -64000")
+	// Enable memory-mapped I/O for faster read performance
+	// Set mmap_size to a reasonable value (e.g., 256MB)
+	db.Exec("PRAGMA mmap_size = 268435456")
 	return db, nil
 }
 
