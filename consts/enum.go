@@ -19,9 +19,9 @@ type AttachmentType int32
 
 const (
 	AttachmentTypeLocal AttachmentType = iota
-	// AttachmentTypeUpOSS 又拍�?
+	// AttachmentTypeUpOSS 又拍云
 	AttachmentTypeUpOSS
-	// AttachmentTypeQiNiuOSS 七牛�?
+	// AttachmentTypeQiNiuOSS 七牛云
 	AttachmentTypeQiNiuOSS
 	// AttachmentTypeSMMS sm.ms
 	AttachmentTypeSMMS
