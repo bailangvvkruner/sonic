@@ -58,10 +58,10 @@ func (t *TagModel) TagPosts(ctx context.Context, model template.Model, slug stri
 			PageNum:  page,
 			PageSize: pageSize,
 		},
-		Sort: &param.Sort{
+		Sort: param.Sort{
 			Fields: []string{"createTime,desc"},
 		},
-		Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Statuses: []consts.PostStatus{consts.PostStatusPublished},
 		TagID:    &tag.ID,
 	})
 	if err != nil {

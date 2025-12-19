@@ -49,7 +49,7 @@ func (p *PostCommentHandler) ListPostComment(ctx *fiber.Ctx) (interface{}, error
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	commentQuery.Sort = &param.Sort{
+	commentQuery.Sort = param.Sort{
 		Fields: []string{"createTime,desc"},
 	}
 	comments, totalCount, err := p.PostCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypePost)
@@ -69,7 +69,7 @@ func (p *PostCommentHandler) ListPostCommentLatest(ctx *fiber.Ctx) (interface{},
 		return nil, err
 	}
 	commentQuery := param.CommentQuery{
-		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
+		Sort:       param.Sort{Fields: []string{"createTime,desc"}},
 		Pagination: param.Pagination{PageNum: 0, PageSize: int(top)},
 	}
 	comments, _, err := p.PostCommentService.Page(ctx.UserContext(), commentQuery, consts.CommentTypePost)
@@ -124,7 +124,7 @@ func (p *PostCommentHandler) ListPostCommentWithParent(ctx *fiber.Ctx) (interfac
 	comments, totalCount, err := p.PostCommentService.Page(ctx.UserContext(), param.CommentQuery{
 		ContentID:  &postID,
 		Pagination: page,
-		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
+		Sort:       param.Sort{Fields: []string{"createTime,desc"}},
 	}, consts.CommentTypePost)
 	if err != nil {
 		return nil, err

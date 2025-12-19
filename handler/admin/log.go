@@ -39,19 +39,19 @@ func (l *LogHandler) PageLatestLog(ctx *fiber.Ctx) (interface{}, error) {
 func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 	type LogParam struct {
 		param.Pagination
-		*param.Sort
+		param.Sort
 	}
 	var logParam LogParam
 	err := ctx.QueryParser(&logParam)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "parameter error").WithStatus(xerr.StatusBadRequest)
 	}
-	if logParam.Sort == nil {
-		logParam.Sort = &param.Sort{
+	if len(logParam.Sort.Fields) == 0 {
+		logParam.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}
-	logs, totalCount, err := l.LogService.PageLog(ctx.UserContext(), logParam.Pagination, logParam.Sort)
+	logs, totalCount, err := l.LogService.PageLog(ctx.UserContext(), logParam.Pagination, &logParam.Sort)
 	if err != nil {
 		return nil, err
 	}

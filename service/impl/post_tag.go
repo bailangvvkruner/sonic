@@ -24,7 +24,7 @@ func (p *postTagServiceImpl) PagePost(ctx context.Context, postQuery param.PostQ
 	postDAL := dal.GetQueryByCtx(ctx).Post
 	postTagDAL := dal.GetQueryByCtx(ctx).PostTag
 	postDo := postDAL.WithContext(ctx).Where(postDAL.Type.Eq(consts.PostTypePost))
-	err := BuildSort(postQuery.Sort, &postDAL, &postDo)
+	err := BuildSort(&postQuery.Sort, &postDAL, &postDo)
 	if err != nil {
 		return nil, 0, err
 	}

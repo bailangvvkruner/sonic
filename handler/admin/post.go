@@ -37,8 +37,8 @@ func (p *PostHandler) ListPosts(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if postQuery.Sort == nil {
-		postQuery.Sort = &param.Sort{Fields: []string{"topPriority,desc", "createTime,desc"}}
+	if len(postQuery.Sort.Fields) == 0 {
+		postQuery.Sort = param.Sort{Fields: []string{"topPriority,desc", "createTime,desc"}}
 	}
 	posts, totalCount, err := p.PostService.Page(ctx.UserContext(), postQuery)
 	if err != nil {
@@ -69,7 +69,7 @@ func (p *PostHandler) ListLatestPosts(ctx *fiber.Ctx) (interface{}, error) {
 			PageSize: int(top),
 			PageNum:  0,
 		},
-		Sort: &param.Sort{
+		Sort: param.Sort{
 			Fields: []string{"createTime,desc"},
 		},
 		Keyword:    nil,
@@ -98,17 +98,17 @@ func (p *PostHandler) ListPostsByStatus(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if postQuery.Sort == nil {
-		postQuery.Sort = &param.Sort{Fields: []string{"createTime,desc"}}
+	if len(postQuery.Sort.Fields) == 0 {
+		postQuery.Sort = param.Sort{Fields: []string{"createTime,desc"}}
 	}
 
 	status, err := util.ParamInt32(ctx, "status")
 	if err != nil {
 		return nil, err
 	}
-	postQuery.Statuses = make([]*consts.PostStatus, 0)
+	postQuery.Statuses = make([]consts.PostStatus, 0)
 	statusType := consts.PostStatus(status)
-	postQuery.Statuses = append(postQuery.Statuses, &statusType)
+	postQuery.Statuses = append(postQuery.Statuses, statusType)
 
 	posts, totalCount, err := p.PostService.Page(ctx.UserContext(), postQuery)
 	if err != nil {

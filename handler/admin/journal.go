@@ -31,7 +31,7 @@ func (j *JournalHandler) ListJournal(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	journalQuery.Sort = &param.Sort{
+	journalQuery.Sort = param.Sort{
 		Fields: []string{"createTime,desc"},
 	}
 	journals, totalCount, err := j.JournalService.ListJournal(ctx.UserContext(), journalQuery)
@@ -51,7 +51,7 @@ func (j *JournalHandler) ListLatestJournal(ctx *fiber.Ctx) (interface{}, error) 
 		top = 10
 	}
 	journalQuery := param.JournalQuery{
-		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
+		Sort:       param.Sort{Fields: []string{"createTime,desc"}},
 		Pagination: param.Pagination{PageNum: 0, PageSize: top},
 	}
 	journals, _, err := j.JournalService.ListJournal(ctx.UserContext(), journalQuery)

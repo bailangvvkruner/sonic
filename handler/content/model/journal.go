@@ -33,7 +33,7 @@ func (p *JournalModel) Journals(ctx context.Context, model template.Model, page 
 	journalType := consts.JournalTypePublic
 	journals, total, err := p.JournalService.ListJournal(ctx, param.JournalQuery{
 		Pagination: param.Pagination{PageNum: page, PageSize: pageSize},
-		Sort: &param.Sort{
+		Sort: param.Sort{
 			Fields: []string{"createTime,desc"},
 		},
 		Keyword:     nil,

@@ -77,20 +77,20 @@ func (j *journalServiceImpl) ListJournal(ctx context.Context, journalQuery param
 		return nil, 0, xerr.BadParam.New("").WithStatus(xerr.StatusBadRequest).WithMsg("Paging parameter error")
 	}
 	journalDAL := dal.GetQueryByCtx(ctx).Journal
-	journalDO := journalDAL.WithContext(ctx)
-	err := BuildSort(journalQuery.Sort, &journalDAL, &journalDO)
+	journalDo := journalDAL.WithContext(ctx)
+	err := BuildSort(&journalQuery.Sort, &journalDAL, &journalDo)
 	if err != nil {
 		return nil, 0, err
 	}
 
 	if journalQuery.Keyword != nil {
-		journalDO.Where(journalDAL.Content.Like(*journalQuery.Keyword))
+		journalDo.Where(journalDAL.Content.Like(*journalQuery.Keyword))
 	}
 	if journalQuery.JournalType != nil {
-		journalDO.Where(journalDAL.Type.Like(*journalQuery.JournalType))
+		journalDo.Where(journalDAL.Type.Like(*journalQuery.JournalType))
 	}
 
-	posts, totalCount, err := journalDO.FindByPage(journalQuery.PageNum*journalQuery.PageSize, journalQuery.PageSize)
+	posts, totalCount, err := journalDo.FindByPage(journalQuery.PageNum*journalQuery.PageSize, journalQuery.PageSize)
 	if err != nil {
 		return nil, 0, WrapDBErr(err)
 	}

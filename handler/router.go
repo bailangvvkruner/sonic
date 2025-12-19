@@ -209,6 +209,7 @@ func (s *Server) RegisterRouters() {
 					menuRouter.Get("", s.wrapHandler(s.MenuHandler.ListMenus))
 					menuRouter.Get("/tree_view", s.wrapHandler(s.MenuHandler.ListMenusAsTree))
 					menuRouter.Get("/team/tree_view", s.wrapHandler(s.MenuHandler.ListMenusAsTreeByTeam))
+					menuRouter.Get("/teams", s.wrapHandler(s.MenuHandler.ListMenuTeams))
 					menuRouter.Get("/:id", s.wrapHandler(s.MenuHandler.GetMenuByID))
 					menuRouter.Post("", s.wrapHandler(s.MenuHandler.CreateMenu))
 					menuRouter.Post("/batch", s.wrapHandler(s.MenuHandler.CreateMenuBatch))
@@ -216,7 +217,6 @@ func (s *Server) RegisterRouters() {
 					menuRouter.Put("/batch", s.wrapHandler(s.MenuHandler.UpdateMenuBatch))
 					menuRouter.Delete("/:id", s.wrapHandler(s.MenuHandler.DeleteMenu))
 					menuRouter.Delete("/batch", s.wrapHandler(s.MenuHandler.DeleteMenuBatch))
-					menuRouter.Get("/teams", s.wrapHandler(s.MenuHandler.ListMenuTeams))
 				}
 				{
 					tagRouter := authRouter.Group("/tags")

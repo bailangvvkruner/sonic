@@ -69,9 +69,9 @@ func (s *SearchHandler) search(ctx *fiber.Ctx, pageNum int, model template.Model
 	}
 	postQuery := param.PostQuery{
 		Pagination: page,
-		Sort:       &sort,
+		Sort:       sort,
 		Keyword:    &keyword,
-		Statuses:   []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Statuses:   []consts.PostStatus{consts.PostStatusPublished},
 	}
 	posts, total, err := s.PostService.Page(ctx.UserContext(), postQuery)
 	if err != nil {

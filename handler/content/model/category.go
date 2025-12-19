@@ -84,12 +84,12 @@ func (c *CategoryModel) CategoryDetail(ctx context.Context, model template.Model
 			PageNum:  page,
 			PageSize: pageSize,
 		},
-		Sort:       &sort,
-		Statuses:   []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Sort:       sort,
+		Statuses:   []consts.PostStatus{consts.PostStatusPublished},
 		CategoryID: &category.ID,
 	}
 	if category.Password != "" {
-		postQuery.Statuses = append(postQuery.Statuses, consts.PostStatusIntimate.Ptr())
+		postQuery.Statuses = append(postQuery.Statuses, consts.PostStatusIntimate)
 	}
 	posts, totalPage, err := c.PostService.Page(ctx, postQuery)
 	if err != nil {

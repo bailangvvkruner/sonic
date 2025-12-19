@@ -4,7 +4,7 @@ import "github.com/go-sonic/sonic/consts"
 
 type JournalQuery struct {
 	Pagination
-	*Sort
+	Sort
 	Keyword     *string             `json:"keyword" form:"keyword"`
 	JournalType *consts.JournalType `json:"journalType" form:"journalType"`
 }

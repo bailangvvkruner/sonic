@@ -53,7 +53,7 @@ func (p postServiceImpl) Page(ctx context.Context, postQuery param.PostQuery) ([
 	postDAL := dal.GetQueryByCtx(ctx).Post
 	postCategoryDAL := dal.GetQueryByCtx(ctx).PostCategory
 	postDo := postDAL.WithContext(ctx).Where(postDAL.Type.Eq(consts.PostTypePost))
-	err := BuildSort(postQuery.Sort, &postDAL, &postDo)
+	err := BuildSort(&postQuery.Sort, &postDAL, &postDo)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -39,7 +39,7 @@ func NewBaseCommentService(userService service.UserService, optionService servic
 func (b baseCommentServiceImpl) Page(ctx context.Context, commentQuery param.CommentQuery, commentType consts.CommentType) ([]*entity.Comment, int64, error) {
 	commentDAL := dal.GetQueryByCtx(ctx).Comment
 	commentDO := commentDAL.WithContext(ctx).Where(commentDAL.Type.Eq(commentType))
-	err := BuildSort(commentQuery.Sort, &commentDAL, &commentDO)
+	err := BuildSort(&commentQuery.Sort, &commentDAL, &commentDO)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -60,8 +60,8 @@ func (f *FeedHandler) Atom(ctx *fiber.Ctx, model template.Model) (string, error)
 	rssPageSize := f.OptionService.GetOrByDefault(ctx.UserContext(), property.RssPageSize).(int)
 	postQuery := param.PostQuery{
 		Pagination: param.Pagination{PageNum: 0, PageSize: rssPageSize},
-		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
-		Statuses:   []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Sort:       param.Sort{Fields: []string{"createTime,desc"}},
+		Statuses:   []consts.PostStatus{consts.PostStatusPublished},
 	}
 	posts, _, err := f.PostService.Page(ctx.UserContext(), postQuery)
 	if err != nil {
@@ -120,8 +120,8 @@ func (f *FeedHandler) Robots(ctx *fiber.Ctx, model template.Model) (string, erro
 func (f *FeedHandler) SitemapXML(ctx *fiber.Ctx, model template.Model) (string, error) {
 	posts, _, err := f.PostService.Page(ctx.UserContext(), param.PostQuery{
 		Pagination: param.Pagination{PageNum: 0, PageSize: int(^uint(0) >> 1)},
-		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
-		Statuses:   []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Sort:       param.Sort{Fields: []string{"createTime,desc"}},
+		Statuses:   []consts.PostStatus{consts.PostStatusPublished},
 	})
 	if err != nil {
 		return "", err
@@ -139,8 +139,8 @@ func (f *FeedHandler) SitemapXML(ctx *fiber.Ctx, model template.Model) (string, 
 func (f *FeedHandler) SitemapHTML(ctx *fiber.Ctx, model template.Model) (string, error) {
 	posts, _, err := f.PostService.Page(ctx.UserContext(), param.PostQuery{
 		Pagination: param.Pagination{PageNum: 0, PageSize: int(^uint(0) >> 1)},
-		Sort:       &param.Sort{Fields: []string{"createTime,desc"}},
-		Statuses:   []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Sort:       param.Sort{Fields: []string{"createTime,desc"}},
+		Statuses:   []consts.PostStatus{consts.PostStatusPublished},
 	})
 	if err != nil {
 		return "", err

@@ -48,8 +48,8 @@ func (s *SheetHandler) ListTopComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if commentQuery.Sort != nil && len(commentQuery.Fields) > 0 {
-		commentQuery.Sort = &param.Sort{
+	if len(commentQuery.Sort.Fields) > 0 {
+		commentQuery.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}
@@ -100,8 +100,8 @@ func (s *SheetHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if commentQuery.Sort != nil && len(commentQuery.Fields) > 0 {
-		commentQuery.Sort = &param.Sort{
+	if len(commentQuery.Sort.Fields) > 0 {
+		commentQuery.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}
@@ -111,7 +111,7 @@ func (s *SheetHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 	commentQuery.PageSize = pageSize
 	commentQuery.ParentID = util.Int32Ptr(0)
 
-	allComments, err := s.SheetCommentService.GetByContentID(ctx.UserContext(), sheetID, consts.CommentTypeSheet, commentQuery.Sort)
+	allComments, err := s.SheetCommentService.GetByContentID(ctx.UserContext(), sheetID, consts.CommentTypeSheet, &commentQuery.Sort)
 	if err != nil {
 		return nil, err
 	}
@@ -135,8 +135,8 @@ func (s *SheetHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if commentQuery.Sort != nil && len(commentQuery.Fields) > 0 {
-		commentQuery.Sort = &param.Sort{
+	if len(commentQuery.Sort.Fields) > 0 {
+		commentQuery.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}

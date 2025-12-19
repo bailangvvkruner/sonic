@@ -43,7 +43,7 @@ func (j *JournalHandler) ListJournal(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	journalQuery.Sort = &param.Sort{
+	journalQuery.Sort = param.Sort{
 		Fields: []string{"createTime,desc"},
 	}
 	journalQuery.JournalType = consts.JournalTypePublic.Ptr()
@@ -89,8 +89,8 @@ func (j *JournalHandler) ListTopComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if commentQuery.Sort != nil && len(commentQuery.Fields) > 0 {
-		commentQuery.Sort = &param.Sort{
+	if len(commentQuery.Sort.Fields) > 0 {
+		commentQuery.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}
@@ -141,8 +141,8 @@ func (j *JournalHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if commentQuery.Sort != nil && len(commentQuery.Fields) > 0 {
-		commentQuery.Sort = &param.Sort{
+	if len(commentQuery.Sort.Fields) > 0 {
+		commentQuery.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}
@@ -152,7 +152,7 @@ func (j *JournalHandler) ListCommentTree(ctx *fiber.Ctx) (interface{}, error) {
 	commentQuery.PageSize = pageSize
 	commentQuery.ParentID = util.Int32Ptr(0)
 
-	allComments, err := j.JournalCommentService.GetByContentID(ctx.UserContext(), journalID, consts.CommentTypeJournal, commentQuery.Sort)
+	allComments, err := j.JournalCommentService.GetByContentID(ctx.UserContext(), journalID, consts.CommentTypeJournal, &commentQuery.Sort)
 	if err != nil {
 		return nil, err
 	}
@@ -176,8 +176,8 @@ func (j *JournalHandler) ListComment(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if commentQuery.Sort != nil && len(commentQuery.Fields) > 0 {
-		commentQuery.Sort = &param.Sort{
+	if len(commentQuery.Sort.Fields) > 0 {
+		commentQuery.Sort = param.Sort{
 			Fields: []string{"createTime,desc"},
 		}
 	}

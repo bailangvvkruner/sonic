@@ -30,7 +30,7 @@ func RegisterCommentFunc(template *template.Template, postCommentService service
 func (ce *commentExtension) addGetLatestComment() {
 	getLatestComment := func(top int) ([]*vo.PostCommentWithPost, error) {
 		commentQuery := param.CommentQuery{
-			Sort:          &param.Sort{Fields: []string{"createTime,desc"}},
+			Sort:          param.Sort{Fields: []string{"createTime,desc"}},
 			Pagination:    param.Pagination{PageNum: 0, PageSize: top},
 			CommentStatus: consts.CommentStatusPublished.Ptr(),
 		}

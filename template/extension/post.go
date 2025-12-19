@@ -50,10 +50,10 @@ func (p *postExtension) addListLatestPost() {
 				PageNum:  0,
 				PageSize: top,
 			},
-			Sort: &param.Sort{
+			Sort: param.Sort{
 				Fields: []string{"createTime,desc"},
 			},
-			Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+			Statuses: []consts.PostStatus{consts.PostStatusPublished},
 		})
 		if err != nil {
 			return nil, err
@@ -71,10 +71,10 @@ func (p *postExtension) addListMostPopularPost() {
 				PageNum:  0,
 				PageSize: top,
 			},
-			Sort: &param.Sort{
+			Sort: param.Sort{
 				Fields: []string{"visits,desc"},
 			},
-			Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+			Statuses: []consts.PostStatus{consts.PostStatusPublished},
 		})
 		if err != nil {
 			return nil, err

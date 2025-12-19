@@ -66,8 +66,8 @@ func (c *CategoryHandler) ListPosts(ctx *fiber.Ctx) (interface{}, error) {
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
-	if postQuery.Sort == nil {
-		postQuery.Sort = &param.Sort{Fields: []string{"topPriority,desc", "updateTime,desc"}}
+	if len(postQuery.Sort.Fields) == 0 {
+		postQuery.Sort = param.Sort{Fields: []string{"topPriority,desc", "updateTime,desc"}}
 	}
 	password := ctx.Query("password")
 
@@ -89,7 +89,7 @@ func (c *CategoryHandler) ListPosts(ctx *fiber.Ctx) (interface{}, error) {
 		}
 	}
 	postQuery.WithPassword = util.BoolPtr(false)
-	postQuery.Statuses = []*consts.PostStatus{consts.PostStatusPublished.Ptr(), consts.PostStatusIntimate.Ptr()}
+	postQuery.Statuses = []consts.PostStatus{consts.PostStatusPublished, consts.PostStatusIntimate}
 	posts, totalCount, err := c.PostService.Page(ctx.UserContext(), postQuery)
 	if err != nil {
 		return nil, err

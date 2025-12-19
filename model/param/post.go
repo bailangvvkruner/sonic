@@ -32,11 +32,11 @@ type PostContent struct {
 
 type PostQuery struct {
 	Pagination
-	*Sort
-	Keyword      *string              `json:"keyword" form:"keyword"`
-	Statuses     []*consts.PostStatus `json:"statuses" form:"statuses"`
-	CategoryID   *int32               `json:"categoryId" form:"categoryId"`
-	More         *bool                `json:"more" form:"more"`
-	TagID        *int32               `json:"tagId" form:"tagId"`
-	WithPassword *bool                `json:"-" form:"-"`
+	Sort
+	Keyword      *string             `json:"keyword" form:"keyword"`
+	Statuses     []consts.PostStatus `json:"statuses" form:"statuses"`
+	CategoryID   *int32              `json:"categoryId" form:"categoryId"`
+	More         *bool               `json:"more" form:"more"`
+	TagID        *int32              `json:"tagId" form:"tagId"`
+	WithPassword *bool               `json:"-" form:"-"`
 }

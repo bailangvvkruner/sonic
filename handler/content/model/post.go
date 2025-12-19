@@ -151,8 +151,8 @@ func (p *PostModel) List(ctx context.Context, page int, model template.Model) (s
 			PageNum:  page,
 			PageSize: pageSize,
 		},
-		Sort:     &sort,
-		Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Sort:     sort,
+		Statuses: []consts.PostStatus{consts.PostStatusPublished},
 	}
 	posts, totalCount, err := p.PostService.Page(ctx, postQuery)
 	if err != nil {
@@ -183,10 +183,10 @@ func (p *PostModel) Archives(ctx context.Context, page int, model template.Model
 			PageNum:  page,
 			PageSize: pageSize,
 		},
-		Sort: &param.Sort{
+		Sort: param.Sort{
 			Fields: []string{"createTime,desc"},
 		},
-		Statuses: []*consts.PostStatus{consts.PostStatusPublished.Ptr()},
+		Statuses: []consts.PostStatus{consts.PostStatusPublished},
 	}
 	posts, totalPage, err := p.PostService.Page(ctx, postQuery)
 	if err != nil {

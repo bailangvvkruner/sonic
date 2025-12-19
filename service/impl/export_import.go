@@ -234,7 +234,7 @@ func (e *exportImport) ExportMarkdown(ctx context.Context, needFrontMatter bool)
 			PageNum:  0,
 			PageSize: 999999,
 		},
-		Statuses: []*consts.PostStatus{consts.PostStatusDraft.Ptr(), consts.PostStatusIntimate.Ptr(), consts.PostStatusPublished.Ptr()},
+		Statuses: []consts.PostStatus{consts.PostStatusDraft, consts.PostStatusIntimate, consts.PostStatusPublished},
 	})
 	if err != nil {
 		return "", err

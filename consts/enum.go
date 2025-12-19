@@ -115,6 +115,10 @@ func (a *AttachmentType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (a *AttachmentType) UnmarshalText(text []byte) error {
+	return a.UnmarshalJSON([]byte(`"` + string(text) + `"`))
+}
+
 func (a *AttachmentType) Scan(src interface{}) error {
 	if src == nil {
 		return xerr.BadParam.New("").WithMsg("field nil")
@@ -189,6 +193,43 @@ func (l LogType) MarshalJSON() ([]byte, error) {
 	return nil, nil
 }
 
+func (l *LogType) UnmarshalText(text []byte) error {
+	str := string(text)
+	switch str {
+	case "BLOG_INITIALIZED":
+		*l = LogTypeBlogInitialized
+	case "POST_PUBLISHED":
+		*l = LogTypePostPublished
+	case "POST_EDITED":
+		*l = LogTypePostEdited
+	case "POST_DELETED":
+		*l = LogTypePostDeleted
+	case "LOGGED_IN":
+		*l = LogTypeLoggedIn
+	case "LOGGED_OUT":
+		*l = LogTypeLoggedOut
+	case "LOGIN_FAILED":
+		*l = LogTypeLoginFailed
+	case "PASSWORD_UPDATED":
+		*l = LogTypePasswordUpdated
+	case "PROFILE_UPDATED":
+		*l = LogTypeProfileUpdated
+	case "SHEET_PUBLISHED":
+		*l = LogTypeSheetPublished
+	case "SHEET_EDITED":
+		*l = LogTypeSheetEdited
+	case "SHEET_DELETED":
+		*l = LogTypeSheetDeleted
+	case "MFA_UPDATED":
+		*l = LogTypeMfaUpdated
+	case "LOGGED_PRE_CHECK":
+		*l = LogTypeLoggedPreCheck
+	default:
+		return xerr.BadParam.New("").WithMsg("unknown LogType")
+	}
+	return nil
+}
+
 func (l *LogType) Scan(src interface{}) error {
 	if src == nil {
 		return xerr.BadParam.New("").WithMsg("field nil")
@@ -239,6 +280,10 @@ func (m *MFAType) UnmarshalJSON(data []byte) error {
 		return xerr.BadParam.New("").WithMsg("unknown MFAType")
 	}
 	return nil
+}
+
+func (m *MFAType) UnmarshalText(text []byte) error {
+	return m.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (m *MFAType) Scan(src interface{}) error {
@@ -302,6 +347,10 @@ func (c *PostStatus) UnmarshalJSON(data []byte) error {
 		return xerr.BadParam.New("").WithMsg("unknown PostStatus")
 	}
 	return nil
+}
+
+func (c *PostStatus) UnmarshalText(text []byte) error {
+	return c.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (c *PostStatus) Scan(src interface{}) error {
@@ -378,6 +427,10 @@ func (c *CommentStatus) UnmarshalJSON(data []byte) error {
 		return xerr.BadParam.New("").WithMsg("unknown CommentStatus")
 	}
 	return nil
+}
+
+func (c *CommentStatus) UnmarshalText(text []byte) error {
+	return c.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (c *CommentStatus) Scan(src interface{}) error {
@@ -485,6 +538,10 @@ func (e *EditorType) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
+func (e *EditorType) UnmarshalText(text []byte) error {
+	return e.UnmarshalJSON([]byte(`"` + string(text) + `"`))
+}
+
 type OptionType int32
 
 const (
@@ -511,6 +568,10 @@ func (o *OptionType) UnmarshalJSON(data []byte) error {
 		return xerr.BadParam.New("").WithMsg("unknown OptionType")
 	}
 	return nil
+}
+
+func (o *OptionType) UnmarshalText(text []byte) error {
+	return o.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (o *OptionType) Scan(src interface{}) error {
@@ -616,6 +677,10 @@ func (j JournalType) MarshalJSON() ([]byte, error) {
 		return []byte(`"INTIMATE"`), nil
 	}
 	return nil, nil
+}
+
+func (j *JournalType) UnmarshalText(text []byte) error {
+	return j.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (j *JournalType) UnmarshalJSON(data []byte) error {
@@ -767,6 +832,11 @@ func (t *ThemeConfigInputType) UnmarshalJSON(data []byte) error {
 	default:
 		return xerr.BadParam.New("").WithMsg("unknown ThemeConfigInputType")
 	}
+return nil
+}
+
+func (t *ThemeConfigInputType) UnmarshalText(text []byte) error {
+	return t.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (t *ThemeConfigInputType) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -921,6 +991,11 @@ func (t *ThemeConfigDataType) UnmarshalJSON(data []byte) error {
 	default:
 		return xerr.BadParam.New("").WithMsg("unknown ThemeConfigInputType")
 	}
+return nil
+}
+
+func (t *ThemeConfigDataType) UnmarshalText(text []byte) error {
+	return t.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (t *ThemeConfigDataType) UnmarshalYAML(unmarshal func(interface{}) error) error {
@@ -979,6 +1054,10 @@ func (c CategoryType) MarshalJSON() ([]byte, error) {
 		return []byte(`"INTIMATE"`), nil
 	}
 	return nil, nil
+}
+
+func (c *CategoryType) UnmarshalText(text []byte) error {
+	return c.UnmarshalJSON([]byte(`"` + string(text) + `"`))
 }
 
 func (c *CategoryType) UnmarshalJSON(data []byte) error {

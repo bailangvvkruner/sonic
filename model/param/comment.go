@@ -4,7 +4,7 @@ import "github.com/go-sonic/sonic/consts"
 
 type CommentQuery struct {
 	Pagination
-	*Sort
+	Sort
 	ContentID     *int32
 	Keyword       *string               `json:"keyword" form:"keyword"`
 	CommentStatus *consts.CommentStatus `json:"status" form:"status"`
