@@ -688,10 +688,67 @@
                                         save: function() {
                                             var t = this;
                                             t.loading = true;
-                                            var http = t.$http || t.axios || window.axios;
                                             
-                                            // Fallback if no axios found, try to use native fetch or XMLHttpRequest
+                                            // Try to get http client from Vue prototype if not on instance
+                                            var http = t.$http || t.axios || window.axios;
+                                            if (!http && t.$root && t.$root.$http) http = t.$root.$http;
+                                            if (!http && t.$root && t.$root.axios) http = t.$root.axios;
+                                            
+                                            // Fallback to finding it on the prototype chain manually
+                                            if (!http && Object.getPrototypeOf(t).$http) http = Object.getPrototypeOf(t).$http;
+
+                                            // Final fallback: Look for axios in global scope or imported modules
+                                            // Since we are inside a webpack bundle, 'n' is the require function.
+                                            // We might be able to use it if we are lucky, but 'n' is local to the module wrapper.
+                                            
                                             if (!http) {
+                                                 // Try to use native fetch as a last resort
+                                                 if (window.fetch) {
+                                                     var params = {
+                                                        cache_enabled: t.form.cache_enabled + "",
+                                                        cache_expiration_time: t.form.cache_expiration_time + "",
+                                                        cache_expiration_unit: t.form.cache_expiration_unit
+                                                     };
+                                                     
+                                                     // We need to handle authentication token manually if using fetch
+                                                     // The token is usually in localStorage or cookie.
+                                                     // Based on previous code: a["default"].ls.get(ke.LA) -> Access-Token
+                                                     // But we don't have access to 'ke' here.
+                                                     // Let's look for "admin-token" or similar in localStorage.
+                                                     
+                                                     var token = localStorage.getItem("admin-token") || ""; 
+                                                     // Note: the key might be different. 
+                                                     // In `Seo` function: v.Z.commit("SET_TOKEN", a["default"].ls.get(ke.LA))
+                                                     // We can try to get it from the Vuex store if possible: t.$store.getters.token
+                                                     
+                                                     if (t.$store && t.$store.getters) {
+                                                         token = t.$store.getters.token;
+                                                     }
+
+                                                     fetch("/api/admin/options/map_view/saving", {
+                                                         method: "POST",
+                                                         headers: {
+                                                             "Content-Type": "application/json",
+                                                             "Admin-Authorization": token // Guessing the header name based on standard Sonic/Halo
+                                                         },
+                                                         body: JSON.stringify(params)
+                                                     }).then(function(response) {
+                                                         return response.json();
+                                                     }).then(function(data) {
+                                                         if (data.status === 200) {
+                                                             t.$message.success("Saved successfully");
+                                                         } else {
+                                                             t.$message.error(data.message || "Save failed");
+                                                         }
+                                                         t.loading = false;
+                                                     }).catch(function(err) {
+                                                         console.error("Fetch error:", err);
+                                                         t.$message.error("Network error");
+                                                         t.loading = false;
+                                                     });
+                                                     return;
+                                                 }
+                                            
                                                  console.error("No HTTP client found!");
                                                  t.$message.error("System Error: No HTTP client");
                                                  t.loading = false;
