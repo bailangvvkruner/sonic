@@ -45,8 +45,8 @@ RUN set -eux \
     && CGO_ENABLED=1 GOOS=linux \
         go build \
         -o $FILENAME \
+        -ldflags="-s -w -extldflags -static" \
         # -ldflags="-s -w" \
-        -ldflags="-s -w" \
         -trimpath . \
         && echo "Binary size after build:" \
         && du -b $FILENAME \
