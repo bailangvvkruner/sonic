@@ -63,8 +63,8 @@ RUN set -eux \
     && mkdir -p /app/conf \
     && mkdir /app/resources \
     && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/sonic /app/ \
-    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/conf /app/ \
-    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/resources /app/ \
+    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/conf/* /app/conf/ \
+    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/resources/* /app/resources/ \
     && cp /go/src/github.com/go-sonic/sonic/scripts/docker_init.sh /app/
 
 
@@ -79,5 +79,5 @@ RUN apk add --no-cache tzdata  ca-certificates \
 VOLUME /sonic
 EXPOSE 8080
 
-WORKDIR /sonic
-CMD /app/docker_init.sh && /app/sonic -config /sonic/conf/config.yaml
+WORKDIR /app
+CMD ./docker_init.sh && ./sonic -config /sonic/conf/config.yaml
