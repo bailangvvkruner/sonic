@@ -17,7 +17,7 @@ permissions:
   actions: read
 
 env:
-  DOCKER_REPO: bailangvvking/strip
+  DOCKER_REPO: bailangvvking/sonic
   IMAGE_NAME: sonic
   IMAGE_TAG: strip
 
