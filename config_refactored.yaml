@@ -1,0 +1,14 @@
+# Sonic博客系统简化配置
+sonic:
+  mode: "development"  # development 或 production
+  admin_url_path: "admin"
+  work_dir: ""  # 留空自动使用当前目录
+  log_dir: ""  # 留空使用 work_dir/log
+  template_dir: ""  # 留空使用 work_dir/resources/template
+  admin_resources_dir: ""  # 留空使用 work_dir/resources/admin
+  upload_dir: ""  # 留空使用 work_dir/resources/upload
+  theme_dir: ""  # 留空使用 work_dir/resources/template/theme
+
+sqlite3:
+  enable: true
+  file: "sonic.db"  # 数据库文件路径

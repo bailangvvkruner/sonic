@@ -50,7 +50,8 @@ jobs:
         with:
           # context: .
           # 调整dockerfile
-          file: ./scripts/Dockerfile
+          file: |
+            ./scripts/Dockerfile_simple
           platforms: |
               linux/amd64
           push: true

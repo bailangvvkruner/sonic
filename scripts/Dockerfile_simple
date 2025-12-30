@@ -1,0 +1,31 @@
+FROM golang:alpine as builder
+
+WORKDIR /build
+
+# 复制所有文件
+COPY . .
+
+# 安装依赖并构建
+RUN apk add --no-cache git ca-certificates build-base \
+    && go mod download \
+    && CGO_ENABLED=0 GOOS=linux go build -o sonic main_refactored.go
+
+# 运行阶段
+FROM alpine:latest
+
+RUN apk add --no-cache tzdata ca-certificates \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && echo "Asia/Shanghai" > /etc/timezone
+
+WORKDIR /sonic
+
+# 复制构建产物
+COPY --from=builder /build/sonic .
+COPY --from=builder /build/config_refactored.yaml config.yaml
+
+# 创建数据目录
+RUN mkdir -p data logs
+
+EXPOSE 8080
+
+CMD ["./sonic", "-config", "config.yaml"]
