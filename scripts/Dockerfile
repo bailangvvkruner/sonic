@@ -21,7 +21,9 @@ RUN set -eux \
     # WORKDIR /go/src/github.com/go-sonic/sonic
     \
     # && set -eux \
-    && git clone -b fiber --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
+    && git clone -b strip --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
+    # 切换到sonic_fiber_v2目录进行构建
+    && cd sonic_fiber_v2 \
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
@@ -60,9 +62,9 @@ RUN set -eux \
     \
     && mkdir -p /app/conf \
     && mkdir /app/resources \
-    && cp -r /go/src/github.com/go-sonic/sonic/sonic /app/ \
-    && cp -r /go/src/github.com/go-sonic/sonic/conf /app/ \
-    && cp -r /go/src/github.com/go-sonic/sonic/resources /app/ \
+    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/sonic /app/ \
+    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/conf /app/ \
+    && cp -r /go/src/github.com/go-sonic/sonic/sonic_fiber_v2/resources /app/ \
     && cp /go/src/github.com/go-sonic/sonic/scripts/docker_init.sh /app/
 
 
