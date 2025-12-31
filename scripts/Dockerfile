@@ -70,10 +70,10 @@ RUN set -eux \
     \
     && mkdir -p /app/conf \
     && mkdir /app/resources \
-    && cp -r /tmp/srcsonic /app/ \
-    && cp -r /tmp/srcconf /app/ \
-    && cp -r /tmp/srcresources /app/ \
-    && cp /tmp/srcscripts/docker_init.sh /app/
+    && cp -r /tmp/src/sonic /app/ \
+    && cp -r /tmp/src/conf /app/ \
+    && cp -r /tmp/src/resources /app/ \
+    && cp /tmp/src/scripts/docker_init.sh /app/
 
 
 FROM alpine:latest as prod
