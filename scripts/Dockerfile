@@ -40,7 +40,14 @@ RUN set -eux \
     # 方法二：使用 @latest 但清除版本约束
     && go get github.com/golang-jwt/jwt/v5@latest \
     && go get github.com/disintegration/imaging@latest \
-    && go mod tidy \
+    # && go mod tidy \
+    # 设置GOCACHE（在/tmp中利用内存速度）
+    # Go构建缓存 : 编译结果、分析数据、已编译的包
+    && export GOCACHE=/tmp/gocache \
+    # Go工具链使用的临时文件目录 : 编译过程中的临时文件、链接器临时文件
+    && export TMPDIR=/tmp/gotmp \
+    # Go模块缓存 : 存储下载的Go模块（依赖包）
+    && export GOMODCACHE=/tmp/gomodcache \
     # && CGO_ENABLED=0 GOOS=linux \
     && CGO_ENABLED=1 GOOS=linux \
         go build \
