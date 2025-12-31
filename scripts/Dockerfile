@@ -22,7 +22,6 @@ RUN set -eux \
     \
     # && set -eux \
     && git clone -b fiber --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
-    
     # 设置GOCACHE（在/tmp中利用内存速度）
     && mkdir -p /tmp/gocache /tmp/gotmp /tmp/gomodcache\
     # Go构建缓存 : 编译结果、分析数据、已编译的包
@@ -31,7 +30,6 @@ RUN set -eux \
     && export TMPDIR=/tmp/gotmp \
     # Go模块缓存 : 存储下载的Go模块（依赖包）
     && export GOMODCACHE=/tmp/gomodcache \
-    
     # go get -u \
     # go get -u ./... \
     # 在构建阶段添加
