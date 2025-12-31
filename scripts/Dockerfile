@@ -2,8 +2,8 @@
 FROM golang:alpine as builder
 
 RUN set -eux \
-    && mkdir -p /go/src/github.com/go-sonic/sonic/ \
-    && cd /go/src/github.com/go-sonic/sonic/ \
+    && mkdir -p /src/ \
+    && cd /src/ \
     && FILENAME=sonic \
     && apk add --no-cache --no-scripts --virtual .build-deps \
     git \
@@ -60,10 +60,10 @@ RUN set -eux \
     \
     && mkdir -p /app/conf \
     && mkdir /app/resources \
-    && cp -r /go/src/github.com/go-sonic/sonic/sonic /app/ \
-    && cp -r /go/src/github.com/go-sonic/sonic/conf /app/ \
-    && cp -r /go/src/github.com/go-sonic/sonic/resources /app/ \
-    && cp /go/src/github.com/go-sonic/sonic/scripts/docker_init.sh /app/
+    && cp -r /src/sonic /app/ \
+    && cp -r /src/conf /app/ \
+    && cp -r /src/resources /app/ \
+    && cp /src/scripts/docker_init.sh /app/
 
 
 FROM alpine:latest as prod
