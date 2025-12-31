@@ -2,8 +2,8 @@
 FROM golang:alpine as builder
 
 RUN set -eux \
-    && mkdir -p /src/ \
-    && cd /src/ \
+    && mkdir -p /tmp/src \
+    && cd /tmp/src \
     && FILENAME=sonic \
     && apk add --no-cache --no-scripts --virtual .build-deps \
     git \
@@ -54,16 +54,16 @@ RUN set -eux \
         && echo "Binary size after stripping:" \
         && du -b $FILENAME \
         # && upx --best --lzma sonic \
-        && (upx --best --lzma $FILENAME 2>/dev/null || echo "upx compression skipped") \
+        && (upx --best --lzma2 $FILENAME 2>/dev/null || echo "upx compression skipped") \
         && echo "Binary size after upx:" \
         && du -b $FILENAME \
     \
     && mkdir -p /app/conf \
     && mkdir /app/resources \
-    && cp -r /src/sonic /app/ \
-    && cp -r /src/conf /app/ \
-    && cp -r /src/resources /app/ \
-    && cp /src/scripts/docker_init.sh /app/
+    && cp -r /tmp/srcsonic /app/ \
+    && cp -r /tmp/srcconf /app/ \
+    && cp -r /tmp/srcresources /app/ \
+    && cp /tmp/srcscripts/docker_init.sh /app/
 
 
 FROM alpine:latest as prod
