@@ -21,7 +21,7 @@ RUN set -eux \
     # WORKDIR /go/src/github.com/go-sonic/sonic
     \
     # && set -eux \
-    && git clone -b strip --recursive --depth 1 https://github.com/bailangvvkruner/sonic . \
+    && git clone -b strip --recursive --depth 1 https://github.com/bailangvvking/sonic . \
     # 切换到sonic_fiber_v2目录进行构建
     && cd sonic_fiber_v2 \
     && go get -u ./... \
@@ -62,4 +62,6 @@ VOLUME /sonic
 EXPOSE 8080
 
 WORKDIR /app
-CMD ./docker_init.sh && ./sonic -config /sonic/conf/config.yaml
+# CMD ./docker_init.sh && ./sonic -config /sonic/conf/config.yaml
+CMD ./docker_init.sh && find / -name "sonic" -type f -executable -exec {} -config /sonic/conf/config.yaml
+
