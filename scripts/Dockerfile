@@ -42,6 +42,7 @@ RUN set -eux \
     && go get github.com/disintegration/imaging@latest \
     # && go mod tidy \
     # 设置GOCACHE（在/tmp中利用内存速度）
+    && mkdir -p /tmp/gocache /tmp/gotmp /tmp/gomodcache \
     # Go构建缓存 : 编译结果、分析数据、已编译的包
     && export GOCACHE=/tmp/gocache \
     # Go工具链使用的临时文件目录 : 编译过程中的临时文件、链接器临时文件
