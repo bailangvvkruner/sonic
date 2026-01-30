@@ -3,8 +3,11 @@ package impl
 import (
 	"context"
 
+	"go.uber.org/zap"
+
 	"github.com/go-sonic/sonic/cache"
 	"github.com/go-sonic/sonic/consts"
+	"github.com/go-sonic/sonic/log"
 	"github.com/go-sonic/sonic/model/entity"
 	"github.com/go-sonic/sonic/model/param"
 	"github.com/go-sonic/sonic/model/vo"
@@ -55,8 +58,10 @@ func (c *CachedPostService) GetPostDetailVO(ctx context.Context, post *entity.Po
 
 	// 1. 尝试从缓存获取
 	if cached, ok := c.CacheManager.GetPostDetail(post.ID); ok {
+		log.Info("[CACHE HIT] PostDetail", zap.Int32("postID", post.ID))
 		return cached, nil
 	}
+	log.Info("[CACHE MISS] PostDetail", zap.Int32("postID", post.ID))
 
 	// 2. 缓存未命中，从数据库组装
 	postVO, err := c.PostAssembler.ConvertToDetailVO(ctx, post)
@@ -66,6 +71,7 @@ func (c *CachedPostService) GetPostDetailVO(ctx context.Context, post *entity.Po
 
 	// 3. 写入缓存
 	_ = c.CacheManager.SetPostDetail(postVO)
+	log.Info("[CACHE SET] PostDetail", zap.Int32("postID", post.ID))
 
 	return postVO, nil
 }

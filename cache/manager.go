@@ -55,7 +55,13 @@ type CacheManager struct {
 // NewCacheManager 创建缓存管理器
 func NewCacheManager(cache *FastCache) *CacheManager {
 	return &CacheManager{
-		cache: cache,
+		cache:       cache,
+		PostKey:     PostCacheKey{},
+		CategoryKey: CategoryCacheKey{},
+		TagKey:      TagCacheKey{},
+		MetaKey:     MetaCacheKey{},
+		PostTagKey:  PostTagCacheKey{},
+		PostCatKey:  PostCategoryCacheKey{},
 	}
 }
 

@@ -120,6 +120,7 @@ func LogToConsole() bool {
 	case File:
 		return false
 	default:
-		return IsDev()
+		// 默认输出到控制台（适合 Docker 环境）
+		return true
 	}
 }
