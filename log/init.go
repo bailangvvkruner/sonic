@@ -12,23 +12,10 @@ import (
 )
 
 func NewLogger(conf *config.Config) *zap.Logger {
-	_, err := os.Stat(conf.Sonic.LogDir)
-	if err != nil {
-		if os.IsNotExist(err) && !config.LogToConsole() {
-			err := os.MkdirAll(conf.Sonic.LogDir, os.ModePerm)
-			if err != nil {
-				panic("mkdir failed![%v]")
-			}
-		}
-	}
-
 	var core zapcore.Core
 
-	if config.LogToConsole() {
-		core = zapcore.NewCore(getDevEncoder(), os.Stdout, getLogLevel(conf.Log.Levels.App))
-	} else {
-		core = zapcore.NewCore(getProdEncoder(), getWriter(conf), getLogLevel(conf.Log.Levels.App))
-	}
+	// 只输出到标准输出（Docker）
+	core = zapcore.NewCore(getProdEncoder(), os.Stdout, getLogLevel(conf.Log.Levels.App))
 
 	// 传入 zap.AddCaller() 显示打日志点的文件名和行号
 	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zap.DPanicLevel))

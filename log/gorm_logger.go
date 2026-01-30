@@ -28,7 +28,8 @@ func NewGormLogger(conf *config.Config, zapLogger *zap.Logger) logger.Interface 
 		SlowThreshold:             200 * time.Millisecond,
 		LogLevel:                  GetGormLogLevel(conf.Log.Levels.Gorm),
 		IgnoreRecordNotFoundError: true,
-		Colorful:                  config.LogToConsole(),
+		// Colorful:                  config.LogToConsole(),
+		Colorful:                  false, // Docker 环境下不使用彩色输出
 	}
 	gl := &gormLogger{
 		Config:       logConfig,
