@@ -465,6 +465,8 @@ func (o *optionServiceImpl) GetAttachmentType(ctx context.Context) consts.Attach
 		return consts.AttachmentTypeHuaweiOBS
 	case "MINIO":
 		return consts.AttachmentTypeMinIO
+	case "CLOUDFLARER2":
+		return consts.AttachmentTypeCloudflareR2
 	default:
 		return consts.AttachmentTypeLocal
 	}
