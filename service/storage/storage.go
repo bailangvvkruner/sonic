@@ -20,16 +20,18 @@ type FileStorageComposite interface {
 	GetFileStorage(storageType consts.AttachmentType) FileStorage
 }
 type fileStorageComposite struct {
-	localStorage *storageimpl.LocalFileStorage
-	minio        *storageimpl.MinIO
-	aliyunOSS    *storageimpl.Aliyun
+	localStorage  *storageimpl.LocalFileStorage
+	minio         *storageimpl.MinIO
+	aliyunOSS     *storageimpl.Aliyun
+	cloudflareR2  *storageimpl.CloudflareR2
 }
 
-func NewFileStorageComposite(localStorage *storageimpl.LocalFileStorage, minio *storageimpl.MinIO, aliyun *storageimpl.Aliyun) FileStorageComposite {
+func NewFileStorageComposite(localStorage *storageimpl.LocalFileStorage, minio *storageimpl.MinIO, aliyun *storageimpl.Aliyun, r2 *storageimpl.CloudflareR2) FileStorageComposite {
 	return &fileStorageComposite{
 		localStorage: localStorage,
 		minio:        minio,
 		aliyunOSS:    aliyun,
+		cloudflareR2: r2,
 	}
 }
 
@@ -41,6 +43,8 @@ func (f *fileStorageComposite) GetFileStorage(storageType consts.AttachmentType)
 		return f.minio
 	case consts.AttachmentTypeAliOSS:
 		return f.aliyunOSS
+	case consts.AttachmentTypeCloudflareR2:
+		return f.cloudflareR2
 	default:
 		panic("Unsupported file storage")
 	}

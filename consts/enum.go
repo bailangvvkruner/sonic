@@ -36,6 +36,8 @@ const (
 	AttachmentTypeHuaweiOBS
 	// AttachmentTypeMinIO AttachmentTypeMinIO
 	AttachmentTypeMinIO
+	// AttachmentTypeCloudflareR2 Cloudflare R2
+	AttachmentTypeCloudflareR2
 )
 
 func (a AttachmentType) String() string {
@@ -58,6 +60,8 @@ func (a AttachmentType) String() string {
 		return "HUAWEIOBS"
 	case AttachmentTypeMinIO:
 		return "MINIO"
+	case AttachmentTypeCloudflareR2:
+		return "CLOUDFLARER2"
 	default:
 		return "UNKNOWN"
 	}
@@ -83,6 +87,8 @@ func (a AttachmentType) MarshalJSON() ([]byte, error) {
 		return []byte(`"HUAWEIOBS"`), nil
 	case AttachmentTypeMinIO:
 		return []byte(`"MINIO"`), nil
+	case AttachmentTypeCloudflareR2:
+		return []byte(`"CLOUDFLARER2"`), nil
 	default:
 		return []byte(`"UNKNOWN"`), nil
 	}
@@ -109,6 +115,8 @@ func (a *AttachmentType) UnmarshalJSON(data []byte) error {
 		*a = AttachmentTypeHuaweiOBS
 	case `"MINIO"`:
 		*a = AttachmentTypeMinIO
+	case `"CLOUDFLARER2"`:
+		*a = AttachmentTypeCloudflareR2
 	default:
 		return xerr.BadParam.New("").WithMsg("unknown AttachmentType")
 	}

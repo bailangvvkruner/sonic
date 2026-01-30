@@ -7,5 +7,6 @@ func init() {
 		NewMinIO,
 		NewLocalFileStorage,
 		NewAliyun,
+		NewCloudflareR2,
 	)
 }
