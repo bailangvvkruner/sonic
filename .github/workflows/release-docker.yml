@@ -3,7 +3,7 @@ name: Sonic Docker Image CI/CD Pipeline
 on:
   workflow_dispatch:
   push:
-    branches: [ fiber ]
+    branches: [ cache ]
   # schedule:
   #   - cron: '0 3 * * *' # 每天构建一次（可选）
   # schedule:
@@ -19,7 +19,7 @@ permissions:
 env:
   DOCKER_REPO: bailangvvking/sonic
   IMAGE_NAME: sonic
-  IMAGE_TAG: fiber
+  IMAGE_TAG: cache
 
 jobs:
   build-and-push:
@@ -51,17 +51,17 @@ jobs:
           # context: .
           # 调整dockerfile
           file: ./scripts/Dockerfile
-          # platforms: |
-          #     linux/amd64
           platforms: |
-              linux/386
               linux/amd64
-              linux/arm/v6
-              linux/arm/v7
-              linux/arm64
-              linux/ppc64le
-              linux/riscv64
-              linux/s390x
+          # platforms: |
+          #     linux/386
+          #     linux/amd64
+          #     linux/arm/v6
+          #     linux/arm/v7
+          #     linux/arm64
+          #     linux/ppc64le
+          #     linux/riscv64
+          #     linux/s390x
           push: true
           tags: |
             ${{ env.DOCKER_REPO }}:${{ env.IMAGE_TAG }}

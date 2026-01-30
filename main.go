@@ -40,6 +40,8 @@ func InitApp() *fx.App {
 			event.NewSyncEventBus,
 			dal.NewGormDB,
 			cache.NewCache,
+		cache.NewFastCache,
+		cache.NewCacheManager,
 			config.NewConfig,
 			handler.NewServer,
 			template.NewTemplate,
