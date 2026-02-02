@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gin-gonic/gin/binding"
+	"github.com/go-sonic/sonic/handler/trans"
 )
 
 const defaultMemory = 32 << 20
@@ -55,8 +55,5 @@ func (customFormPostBinding) Bind(req *http.Request, obj interface{}) error {
 }
 
 func validate(obj interface{}) error {
-	if binding.Validator == nil {
-		return nil
-	}
-	return binding.Validator.ValidateStruct(obj)
+	return trans.Validator.Struct(obj)
 }

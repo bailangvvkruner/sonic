@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/content/model"
 	"github.com/go-sonic/sonic/service"
@@ -30,19 +30,19 @@ func NewTagHandler(
 	}
 }
 
-func (t *TagHandler) Tags(ctx *gin.Context, model template.Model) (string, error) {
-	return t.TagModel.Tags(ctx, model)
+func (t *TagHandler) Tags(ctx *fiber.Ctx, model template.Model) (string, error) {
+	return t.TagModel.Tags(ctx.Context(), model)
 }
 
-func (t *TagHandler) TagPost(ctx *gin.Context, model template.Model) (string, error) {
+func (t *TagHandler) TagPost(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
 	}
-	return t.TagModel.TagPosts(ctx, model, slug, 0)
+	return t.TagModel.TagPosts(ctx.Context(), model, slug, 0)
 }
 
-func (t *TagHandler) TagPostPage(ctx *gin.Context, model template.Model) (string, error) {
+func (t *TagHandler) TagPostPage(ctx *fiber.Ctx, model template.Model) (string, error) {
 	slug, err := util.ParamString(ctx, "slug")
 	if err != nil {
 		return "", err
@@ -51,5 +51,5 @@ func (t *TagHandler) TagPostPage(ctx *gin.Context, model template.Model) (string
 	if err != nil {
 		return "", err
 	}
-	return t.TagModel.TagPosts(ctx, model, slug, int(page-1))
+	return t.TagModel.TagPosts(ctx.Context(), model, slug, int(page-1))
 }

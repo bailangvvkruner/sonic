@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/trans"
@@ -23,7 +23,7 @@ func NewCategoryHandler(categoryService service.CategoryService) *CategoryHandle
 	}
 }
 
-func (c *CategoryHandler) GetCategoryByID(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) GetCategoryByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "categoryID")
 	if err != nil {
 		return nil, err
@@ -35,13 +35,13 @@ func (c *CategoryHandler) GetCategoryByID(ctx *gin.Context) (interface{}, error)
 	return c.CategoryService.ConvertToCategoryDTO(ctx, category)
 }
 
-func (c *CategoryHandler) ListAllCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) ListAllCategory(ctx *fiber.Ctx) (interface{}, error) {
 	categoryQuery := struct {
 		*param.Sort
 		More *bool `json:"more" form:"more"`
 	}{}
 
-	err := ctx.ShouldBindQuery(&categoryQuery)
+	err := ctx.QueryParser(&categoryQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
@@ -58,9 +58,9 @@ func (c *CategoryHandler) ListAllCategory(ctx *gin.Context) (interface{}, error)
 	return c.CategoryService.ConvertToCategoryDTOs(ctx, categories)
 }
 
-func (c *CategoryHandler) ListAsTree(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) ListAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	var sort param.Sort
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +70,9 @@ func (c *CategoryHandler) ListAsTree(ctx *gin.Context) (interface{}, error) {
 	return c.CategoryService.ListAsTree(ctx, &sort, false)
 }
 
-func (c *CategoryHandler) CreateCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) CreateCategory(ctx *fiber.Ctx) (interface{}, error) {
 	var categoryParam param.Category
-	err := ctx.ShouldBindJSON(&categoryParam)
+	err := ctx.BodyParser(&categoryParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -87,9 +87,9 @@ func (c *CategoryHandler) CreateCategory(ctx *gin.Context) (interface{}, error) 
 	return c.CategoryService.ConvertToCategoryDTO(ctx, category)
 }
 
-func (c *CategoryHandler) UpdateCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) UpdateCategory(ctx *fiber.Ctx) (interface{}, error) {
 	var categoryParam param.Category
-	err := ctx.ShouldBindJSON(&categoryParam)
+	err := ctx.BodyParser(&categoryParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -109,9 +109,9 @@ func (c *CategoryHandler) UpdateCategory(ctx *gin.Context) (interface{}, error) 
 	return c.CategoryService.ConvertToCategoryDTO(ctx, category)
 }
 
-func (c *CategoryHandler) UpdateCategoryBatch(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) UpdateCategoryBatch(ctx *fiber.Ctx) (interface{}, error) {
 	categoryParams := make([]*param.Category, 0)
-	err := ctx.ShouldBindJSON(&categoryParams)
+	err := ctx.BodyParser(&categoryParams)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -126,7 +126,7 @@ func (c *CategoryHandler) UpdateCategoryBatch(ctx *gin.Context) (interface{}, er
 	return c.CategoryService.ConvertToCategoryDTOs(ctx, categories)
 }
 
-func (c *CategoryHandler) DeleteCategory(ctx *gin.Context) (interface{}, error) {
+func (c *CategoryHandler) DeleteCategory(ctx *fiber.Ctx) (interface{}, error) {
 	categoryID, err := util.ParamInt32(ctx, "categoryID")
 	if err != nil {
 		return nil, err

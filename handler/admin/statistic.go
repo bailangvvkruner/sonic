@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/service"
 )
@@ -16,10 +16,10 @@ func NewStatisticHandler(l service.StatisticService) *StatisticHandler {
 	}
 }
 
-func (s *StatisticHandler) Statistics(ctx *gin.Context) (interface{}, error) {
+func (s *StatisticHandler) Statistics(ctx *fiber.Ctx) (interface{}, error) {
 	return s.StatisticService.Statistic(ctx)
 }
 
-func (s *StatisticHandler) StatisticsWithUser(ctx *gin.Context) (interface{}, error) {
+func (s *StatisticHandler) StatisticsWithUser(ctx *fiber.Ctx) (interface{}, error) {
 	return s.StatisticService.StatisticWithUser(ctx)
 }

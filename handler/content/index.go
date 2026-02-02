@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/content/model"
 	"github.com/go-sonic/sonic/template"
@@ -18,14 +18,14 @@ func NewIndexHandler(postModel *model.PostModel) *IndexHandler {
 	}
 }
 
-func (h *IndexHandler) Index(ctx *gin.Context, model template.Model) (string, error) {
-	return h.PostModel.List(ctx, 0, model)
+func (h *IndexHandler) Index(ctx *fiber.Ctx, model template.Model) (string, error) {
+	return h.PostModel.List(ctx.Context(), 0, model)
 }
 
-func (h *IndexHandler) IndexPage(ctx *gin.Context, model template.Model) (string, error) {
+func (h *IndexHandler) IndexPage(ctx *fiber.Ctx, model template.Model) (string, error) {
 	page, err := util.ParamInt32(ctx, "page")
 	if err != nil {
 		return "", err
 	}
-	return h.PostModel.List(ctx, int(page)-1, model)
+	return h.PostModel.List(ctx.Context(), int(page)-1, model)
 }

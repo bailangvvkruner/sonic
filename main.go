@@ -44,7 +44,7 @@ func InitApp() *fx.App {
 			handler.NewServer,
 			template.NewTemplate,
 			middleware.NewAuthMiddleware,
-			middleware.NewGinLoggerMiddleware,
+			middleware.NewFiberLoggerMiddleware,
 			middleware.NewRecoveryMiddleware,
 			middleware.NewInstallRedirectMiddleware,
 		),

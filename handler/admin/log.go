@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/model/dto"
 	"github.com/go-sonic/sonic/model/param"
@@ -20,7 +20,7 @@ func NewLogHandler(logService service.LogService) *LogHandler {
 	}
 }
 
-func (l *LogHandler) PageLatestLog(ctx *gin.Context) (interface{}, error) {
+func (l *LogHandler) PageLatestLog(ctx *fiber.Ctx) (interface{}, error) {
 	top, err := util.MustGetQueryInt32(ctx, "top")
 	if err != nil {
 		top = 10
@@ -36,13 +36,13 @@ func (l *LogHandler) PageLatestLog(ctx *gin.Context) (interface{}, error) {
 	return logDTOs, nil
 }
 
-func (l *LogHandler) PageLog(ctx *gin.Context) (interface{}, error) {
+func (l *LogHandler) PageLog(ctx *fiber.Ctx) (interface{}, error) {
 	type LogParam struct {
 		param.Page
 		*param.Sort
 	}
 	var logParam LogParam
-	err := ctx.ShouldBindQuery(&logParam)
+	err := ctx.QueryParser(&logParam)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -62,6 +62,6 @@ func (l *LogHandler) PageLog(ctx *gin.Context) (interface{}, error) {
 	return dto.NewPage(logDTOs, totalCount, logParam.Page), nil
 }
 
-func (l *LogHandler) ClearLog(ctx *gin.Context) (interface{}, error) {
+func (l *LogHandler) ClearLog(ctx *fiber.Ctx) (interface{}, error) {
 	return nil, l.LogService.Clear(ctx)
 }

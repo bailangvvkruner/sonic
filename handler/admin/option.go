@@ -3,7 +3,7 @@ package admin
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/model/param"
 	"github.com/go-sonic/sonic/service"
@@ -20,13 +20,13 @@ func NewOptionHandler(optionService service.OptionService) *OptionHandler {
 	}
 }
 
-func (o *OptionHandler) ListAllOptions(ctx *gin.Context) (interface{}, error) {
+func (o *OptionHandler) ListAllOptions(ctx *fiber.Ctx) (interface{}, error) {
 	return o.OptionService.ListAllOption(ctx)
 }
 
-func (o *OptionHandler) SaveOption(ctx *gin.Context) (interface{}, error) {
+func (o *OptionHandler) SaveOption(ctx *fiber.Ctx) (interface{}, error) {
 	optionParams := make([]*param.Option, 0)
-	err := ctx.ShouldBindJSON(&optionParams)
+	err := ctx.BodyParser(&optionParams)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "param error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -37,7 +37,7 @@ func (o *OptionHandler) SaveOption(ctx *gin.Context) (interface{}, error) {
 	return nil, o.OptionService.Save(ctx, optionMap)
 }
 
-func (o *OptionHandler) ListAllOptionsAsMap(ctx *gin.Context) (interface{}, error) {
+func (o *OptionHandler) ListAllOptionsAsMap(ctx *fiber.Ctx) (interface{}, error) {
 	options, err := o.OptionService.ListAllOption(ctx)
 	if err != nil {
 		return nil, err
@@ -49,9 +49,9 @@ func (o *OptionHandler) ListAllOptionsAsMap(ctx *gin.Context) (interface{}, erro
 	return result, nil
 }
 
-func (o *OptionHandler) ListAllOptionsAsMapWithKey(ctx *gin.Context) (interface{}, error) {
+func (o *OptionHandler) ListAllOptionsAsMapWithKey(ctx *fiber.Ctx) (interface{}, error) {
 	keys := make([]string, 0)
-	err := ctx.ShouldBindJSON(&keys)
+	err := ctx.BodyParser(&keys)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "option key error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -72,9 +72,9 @@ func (o *OptionHandler) ListAllOptionsAsMapWithKey(ctx *gin.Context) (interface{
 	return result, nil
 }
 
-func (o *OptionHandler) SaveOptionWithMap(ctx *gin.Context) (interface{}, error) {
+func (o *OptionHandler) SaveOptionWithMap(ctx *fiber.Ctx) (interface{}, error) {
 	optionMap := make(map[string]interface{}, 0)
-	err := ctx.ShouldBind(&optionMap)
+	err := ctx.BodyParser(&optionMap)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "parameter error").WithStatus(xerr.StatusBadRequest)
 	}

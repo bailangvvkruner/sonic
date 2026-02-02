@@ -1,7 +1,7 @@
 package admin
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/binding"
 	"github.com/go-sonic/sonic/model/dto"
@@ -21,9 +21,9 @@ func NewAttachmentHandler(attachmentService service.AttachmentService) *Attachme
 	}
 }
 
-func (a *AttachmentHandler) QueryAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) QueryAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	queryParam := &param.AttachmentQuery{}
-	err := ctx.ShouldBindWith(queryParam, binding.CustomFormBinding)
+	err := binding.CustomFormBinding.Bind(ctx.Request(), queryParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}
@@ -38,7 +38,7 @@ func (a *AttachmentHandler) QueryAttachment(ctx *gin.Context) (interface{}, erro
 	return dto.NewPage(attachmentDTOs, totalCount, queryParam.Page), nil
 }
 
-func (a *AttachmentHandler) GetAttachmentByID(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) GetAttachmentByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -49,7 +49,7 @@ func (a *AttachmentHandler) GetAttachmentByID(ctx *gin.Context) (interface{}, er
 	return a.AttachmentService.GetAttachment(ctx, id)
 }
 
-func (a *AttachmentHandler) UploadAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) UploadAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	fileHeader, err := ctx.FormFile("file")
 	if err != nil {
 		return nil, xerr.WithMsg(err, "上传文件错误").WithStatus(xerr.StatusBadRequest)
@@ -57,7 +57,7 @@ func (a *AttachmentHandler) UploadAttachment(ctx *gin.Context) (interface{}, err
 	return a.AttachmentService.Upload(ctx, fileHeader)
 }
 
-func (a *AttachmentHandler) UploadAttachments(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) UploadAttachments(ctx *fiber.Ctx) (interface{}, error) {
 	form, _ := ctx.MultipartForm()
 	if len(form.File) == 0 {
 		return nil, xerr.BadParam.New("empty files").WithStatus(xerr.StatusBadRequest).WithMsg("empty files")
@@ -74,21 +74,21 @@ func (a *AttachmentHandler) UploadAttachments(ctx *gin.Context) (interface{}, er
 	return attachmentDTOs, nil
 }
 
-func (a *AttachmentHandler) UpdateAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) UpdateAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
 
 	updateParam := &param.AttachmentUpdate{}
-	err = ctx.ShouldBind(updateParam)
+	err = ctx.BodyParser(updateParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("param error ")
 	}
 	return a.AttachmentService.Update(ctx, id, updateParam)
 }
 
-func (a *AttachmentHandler) DeleteAttachment(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) DeleteAttachment(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -96,20 +96,20 @@ func (a *AttachmentHandler) DeleteAttachment(ctx *gin.Context) (interface{}, err
 	return a.AttachmentService.Delete(ctx, id)
 }
 
-func (a *AttachmentHandler) DeleteAttachmentInBatch(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) DeleteAttachmentInBatch(ctx *fiber.Ctx) (interface{}, error) {
 	ids := make([]int32, 0)
-	err := ctx.ShouldBind(&ids)
+	err := ctx.BodyParser(&ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
 	return a.AttachmentService.DeleteBatch(ctx, ids)
 }
 
-func (a *AttachmentHandler) GetAllMediaType(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) GetAllMediaType(ctx *fiber.Ctx) (interface{}, error) {
 	return a.AttachmentService.GetAllMediaTypes(ctx)
 }
 
-func (a *AttachmentHandler) GetAllTypes(ctx *gin.Context) (interface{}, error) {
+func (a *AttachmentHandler) GetAllTypes(ctx *fiber.Ctx) (interface{}, error) {
 	attachmentTypes, err := a.AttachmentService.GetAllTypes(ctx)
 	if err != nil {
 		return nil, err

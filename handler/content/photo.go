@@ -1,7 +1,7 @@
 package content
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/handler/content/model"
 	"github.com/go-sonic/sonic/service"
@@ -27,14 +27,14 @@ func NewPhotoHandler(
 	}
 }
 
-func (p *PhotoHandler) PhotosPage(ctx *gin.Context, model template.Model) (string, error) {
+func (p *PhotoHandler) PhotosPage(ctx *fiber.Ctx, model template.Model) (string, error) {
 	page, err := util.ParamInt32(ctx, "page")
 	if err != nil {
 		return "", err
 	}
-	return p.PhotoModel.Photos(ctx, model, int(page-1))
+	return p.PhotoModel.Photos(ctx.Context(), model, int(page-1))
 }
 
-func (p *PhotoHandler) Phtotos(ctx *gin.Context, model template.Model) (string, error) {
-	return p.PhotoModel.Photos(ctx, model, 0)
+func (p *PhotoHandler) Phtotos(ctx *fiber.Ctx, model template.Model) (string, error) {
+	return p.PhotoModel.Photos(ctx.Context(), model, 0)
 }

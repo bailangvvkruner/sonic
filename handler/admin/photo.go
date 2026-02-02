@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/trans"
@@ -24,9 +24,9 @@ func NewPhotoHandler(photoService service.PhotoService) *PhotoHandler {
 	}
 }
 
-func (p *PhotoHandler) ListPhoto(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) ListPhoto(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -40,13 +40,13 @@ func (p *PhotoHandler) ListPhoto(ctx *gin.Context) (interface{}, error) {
 	return p.PhotoService.ConvertToDTOs(ctx, photos), nil
 }
 
-func (p *PhotoHandler) PagePhotos(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) PagePhotos(ctx *fiber.Ctx) (interface{}, error) {
 	type Param struct {
 		param.Page
 		param.Sort
 	}
 	param := Param{}
-	err := ctx.ShouldBindQuery(&param)
+	err := ctx.QueryParser(&param)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -60,7 +60,7 @@ func (p *PhotoHandler) PagePhotos(ctx *gin.Context) (interface{}, error) {
 	return dto.NewPage(p.PhotoService.ConvertToDTOs(ctx, photos), totalCount, param.Page), nil
 }
 
-func (p *PhotoHandler) GetPhotoByID(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) GetPhotoByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -72,9 +72,9 @@ func (p *PhotoHandler) GetPhotoByID(ctx *gin.Context) (interface{}, error) {
 	return p.PhotoService.ConvertToDTO(ctx, photo), nil
 }
 
-func (p *PhotoHandler) CreatePhoto(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) CreatePhoto(ctx *fiber.Ctx) (interface{}, error) {
 	photoParam := &param.Photo{}
-	err := ctx.ShouldBindJSON(photoParam)
+	err := ctx.BodyParser(photoParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -89,9 +89,9 @@ func (p *PhotoHandler) CreatePhoto(ctx *gin.Context) (interface{}, error) {
 	return p.PhotoService.ConvertToDTO(ctx, photo), nil
 }
 
-func (p *PhotoHandler) CreatePhotoBatch(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) CreatePhotoBatch(ctx *fiber.Ctx) (interface{}, error) {
 	photosParam := make([]*param.Photo, 0)
-	err := ctx.ShouldBindJSON(&photosParam)
+	err := ctx.BodyParser(&photosParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -106,13 +106,13 @@ func (p *PhotoHandler) CreatePhotoBatch(ctx *gin.Context) (interface{}, error) {
 	return p.PhotoService.ConvertToDTOs(ctx, photos), nil
 }
 
-func (p *PhotoHandler) UpdatePhoto(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) UpdatePhoto(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
 	photoParam := &param.Photo{}
-	err = ctx.ShouldBindJSON(photoParam)
+	err = ctx.BodyParser(photoParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -127,7 +127,7 @@ func (p *PhotoHandler) UpdatePhoto(ctx *gin.Context) (interface{}, error) {
 	return p.PhotoService.ConvertToDTO(ctx, photo), nil
 }
 
-func (p *PhotoHandler) DeletePhoto(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) DeletePhoto(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -135,9 +135,9 @@ func (p *PhotoHandler) DeletePhoto(ctx *gin.Context) (interface{}, error) {
 	return nil, p.PhotoService.Delete(ctx, id)
 }
 
-func (p *PhotoHandler) DeletePhotoBatch(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) DeletePhotoBatch(ctx *fiber.Ctx) (interface{}, error) {
 	photosParam := make([]int32, 0)
-	err := ctx.ShouldBindJSON(&photosParam)
+	err := ctx.BodyParser(&photosParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("parameter error")
 	}
@@ -150,6 +150,6 @@ func (p *PhotoHandler) DeletePhotoBatch(ctx *gin.Context) (interface{}, error) {
 	return nil, nil
 }
 
-func (p *PhotoHandler) ListPhotoTeams(ctx *gin.Context) (interface{}, error) {
+func (p *PhotoHandler) ListPhotoTeams(ctx *fiber.Ctx) (interface{}, error) {
 	return p.PhotoService.ListTeams(ctx)
 }

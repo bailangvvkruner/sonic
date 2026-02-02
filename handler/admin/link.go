@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/binding"
@@ -24,9 +24,9 @@ func NewLinkHandler(linkService service.LinkService) *LinkHandler {
 	}
 }
 
-func (l *LinkHandler) ListLinks(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) ListLinks(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindWith(&sort, binding.CustomFormBinding)
+	err := binding.CustomFormBinding.Bind(ctx.Request(), &sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -42,7 +42,7 @@ func (l *LinkHandler) ListLinks(ctx *gin.Context) (interface{}, error) {
 	return l.LinkService.ConvertToDTOs(ctx, links), nil
 }
 
-func (l *LinkHandler) GetLinkByID(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) GetLinkByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -54,9 +54,9 @@ func (l *LinkHandler) GetLinkByID(ctx *gin.Context) (interface{}, error) {
 	return l.LinkService.ConvertToDTO(ctx, link), nil
 }
 
-func (l *LinkHandler) CreateLink(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) CreateLink(ctx *fiber.Ctx) (interface{}, error) {
 	linkParam := &param.Link{}
-	err := ctx.ShouldBindJSON(linkParam)
+	err := ctx.BodyParser(linkParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -71,13 +71,13 @@ func (l *LinkHandler) CreateLink(ctx *gin.Context) (interface{}, error) {
 	return l.LinkService.ConvertToDTO(ctx, link), nil
 }
 
-func (l *LinkHandler) UpdateLink(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) UpdateLink(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
 	linkParam := &param.Link{}
-	err = ctx.ShouldBindJSON(linkParam)
+	err = ctx.BodyParser(linkParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -92,7 +92,7 @@ func (l *LinkHandler) UpdateLink(ctx *gin.Context) (interface{}, error) {
 	return l.LinkService.ConvertToDTO(ctx, link), nil
 }
 
-func (l *LinkHandler) DeleteLink(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) DeleteLink(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -100,6 +100,6 @@ func (l *LinkHandler) DeleteLink(ctx *gin.Context) (interface{}, error) {
 	return nil, l.LinkService.Delete(ctx, id)
 }
 
-func (l *LinkHandler) ListLinkTeams(ctx *gin.Context) (interface{}, error) {
+func (l *LinkHandler) ListLinkTeams(ctx *fiber.Ctx) (interface{}, error) {
 	return l.LinkService.ListTeams(ctx)
 }

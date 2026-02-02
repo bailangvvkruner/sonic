@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/trans"
@@ -23,9 +23,9 @@ func NewMenuHandler(menuService service.MenuService) *MenuHandler {
 	}
 }
 
-func (m *MenuHandler) ListMenus(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) ListMenus(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -41,9 +41,9 @@ func (m *MenuHandler) ListMenus(ctx *gin.Context) (interface{}, error) {
 	return m.MenuService.ConvertToDTOs(ctx, menus), nil
 }
 
-func (m *MenuHandler) ListMenusAsTree(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) ListMenusAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -59,9 +59,9 @@ func (m *MenuHandler) ListMenusAsTree(ctx *gin.Context) (interface{}, error) {
 	return menus, nil
 }
 
-func (m *MenuHandler) ListMenusAsTreeByTeam(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) ListMenusAsTreeByTeam(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -83,7 +83,7 @@ func (m *MenuHandler) ListMenusAsTreeByTeam(ctx *gin.Context) (interface{}, erro
 	return menus, nil
 }
 
-func (m *MenuHandler) GetMenuByID(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) GetMenuByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -95,9 +95,9 @@ func (m *MenuHandler) GetMenuByID(ctx *gin.Context) (interface{}, error) {
 	return m.MenuService.ConvertToDTO(ctx, menu), nil
 }
 
-func (m *MenuHandler) CreateMenu(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) CreateMenu(ctx *fiber.Ctx) (interface{}, error) {
 	menuParam := &param.Menu{}
-	err := ctx.ShouldBindJSON(menuParam)
+	err := ctx.BodyParser(menuParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -112,9 +112,9 @@ func (m *MenuHandler) CreateMenu(ctx *gin.Context) (interface{}, error) {
 	return m.MenuService.ConvertToDTO(ctx, menu), nil
 }
 
-func (m *MenuHandler) CreateMenuBatch(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) CreateMenuBatch(ctx *fiber.Ctx) (interface{}, error) {
 	menuParams := make([]*param.Menu, 0)
-	err := ctx.ShouldBindJSON(&menuParams)
+	err := ctx.BodyParser(&menuParams)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -129,13 +129,13 @@ func (m *MenuHandler) CreateMenuBatch(ctx *gin.Context) (interface{}, error) {
 	return m.MenuService.ConvertToDTOs(ctx, menus), nil
 }
 
-func (m *MenuHandler) UpdateMenu(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) UpdateMenu(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
 	menuParam := &param.Menu{}
-	err = ctx.ShouldBindJSON(menuParam)
+	err = ctx.BodyParser(menuParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -150,9 +150,9 @@ func (m *MenuHandler) UpdateMenu(ctx *gin.Context) (interface{}, error) {
 	return m.MenuService.ConvertToDTO(ctx, menu), nil
 }
 
-func (m *MenuHandler) UpdateMenuBatch(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) UpdateMenuBatch(ctx *fiber.Ctx) (interface{}, error) {
 	menuParams := make([]*param.Menu, 0)
-	err := ctx.ShouldBindJSON(&menuParams)
+	err := ctx.BodyParser(&menuParams)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -167,7 +167,7 @@ func (m *MenuHandler) UpdateMenuBatch(ctx *gin.Context) (interface{}, error) {
 	return m.MenuService.ConvertToDTOs(ctx, menus), nil
 }
 
-func (m *MenuHandler) DeleteMenu(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) DeleteMenu(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -175,15 +175,15 @@ func (m *MenuHandler) DeleteMenu(ctx *gin.Context) (interface{}, error) {
 	return nil, m.MenuService.Delete(ctx, id)
 }
 
-func (m *MenuHandler) DeleteMenuBatch(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) DeleteMenuBatch(ctx *fiber.Ctx) (interface{}, error) {
 	menuIDs := make([]int32, 0)
-	err := ctx.ShouldBind(&menuIDs)
+	err := ctx.BodyParser(&menuIDs)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "menuIDs error").WithStatus(xerr.StatusBadRequest)
 	}
 	return nil, m.MenuService.DeleteBatch(ctx, menuIDs)
 }
 
-func (m *MenuHandler) ListMenuTeams(ctx *gin.Context) (interface{}, error) {
+func (m *MenuHandler) ListMenuTeams(ctx *fiber.Ctx) (interface{}, error) {
 	return m.MenuService.ListTeams(ctx)
 }

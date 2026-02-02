@@ -4,7 +4,7 @@ import (
 	"context"
 	"path/filepath"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -26,7 +26,7 @@ type TemplateConfigListener struct {
 	UserService   service.UserService
 	Logger        *zap.Logger
 	Config        *config.Config
-	Router        *gin.Engine
+	Router        *fiber.App
 }
 
 func NewTemplateConfigListener(bus event.Bus,

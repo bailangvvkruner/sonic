@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 
 	"github.com/go-sonic/sonic/model/property"
 	"github.com/go-sonic/sonic/service"
@@ -19,27 +19,24 @@ func NewInstallRedirectMiddleware(optionService service.OptionService) *InstallR
 	}
 }
 
-func (i *InstallRedirectMiddleware) InstallRedirect() gin.HandlerFunc {
+func (i *InstallRedirectMiddleware) InstallRedirect() fiber.Handler {
 	skipPath := map[string]struct{}{
 		"/api/admin/installations":  {},
 		"/api/admin/is_installed":   {},
 		"/api/admin/login/precheck": {},
 	}
-	return func(ctx *gin.Context) {
-		path := ctx.Request.URL.Path
+	return func(ctx *fiber.Ctx) error {
+		path := ctx.Path()
 		if _, ok := skipPath[path]; ok {
-			return
+			return ctx.Next()
 		}
-		isInstall, err := i.optionService.GetOrByDefaultWithErr(ctx, property.IsInstalled, false)
+		isInstall, err := i.optionService.GetOrByDefaultWithErr(ctx.Context(), property.IsInstalled, false)
 		if err != nil {
-			abortWithStatusJSON(ctx, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
-			return
+			return abortWithStatusJSON(ctx, http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError))
 		}
 		if !isInstall.(bool) {
-			ctx.Redirect(http.StatusFound, "/admin/#install")
-			ctx.Abort()
-			return
+			return ctx.Redirect("/admin/#install", http.StatusFound)
 		}
-		ctx.Next()
+		return ctx.Next()
 	}
 }

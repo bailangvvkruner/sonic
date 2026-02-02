@@ -4,29 +4,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-type GinLoggerMiddleware struct {
+type FiberLoggerMiddleware struct {
 	logger *zap.Logger
 }
 
-func NewGinLoggerMiddleware(logger *zap.Logger) *GinLoggerMiddleware {
-	return &GinLoggerMiddleware{
+func NewFiberLoggerMiddleware(logger *zap.Logger) *FiberLoggerMiddleware {
+	return &FiberLoggerMiddleware{
 		logger: logger,
 	}
 }
 
-// GinLoggerConfig LoggerConfig defines the config for Logger middleware
-type GinLoggerConfig struct {
+// FiberLoggerConfig LoggerConfig defines the config for Logger middleware
+type FiberLoggerConfig struct {
 	// SkipPaths is an url path array which logs are not written.
 	// Optional.
 	SkipPaths []string
 }
 
 // LoggerWithConfig instance a Logger middleware with config.
-func (g *GinLoggerMiddleware) LoggerWithConfig(conf GinLoggerConfig) gin.HandlerFunc {
+func (g *FiberLoggerMiddleware) LoggerWithConfig(conf FiberLoggerConfig) fiber.Handler {
 	logger := g.logger.WithOptions(zap.WithCaller(false))
 	notLogged := conf.SkipPaths
 
@@ -40,35 +40,37 @@ func (g *GinLoggerMiddleware) LoggerWithConfig(conf GinLoggerConfig) gin.Handler
 		}
 	}
 
-	return func(ctx *gin.Context) {
+	return func(ctx *fiber.Ctx) error {
 		// Start timer
 		start := time.Now()
-		path := ctx.Request.URL.Path
-		raw := ctx.Request.URL.RawQuery
+		path := ctx.Path()
+		raw := ctx.OriginalURL()
 
 		// Process request
-		ctx.Next()
+		err := ctx.Next()
 
-		if len(ctx.Errors) > 0 {
-			logger.Error(ctx.Errors.ByType(gin.ErrorTypePrivate).String())
+		if err != nil {
+			logger.Error(err.Error())
 		}
 		// Log only when path is not being skipped
 		if _, ok := skip[path]; !ok {
-			if raw != "" {
-				path = path + "?" + raw
+			if raw != "" && raw != path {
+				path = raw
 			}
 			path = strings.ReplaceAll(path, "\n", "")
 			path = strings.ReplaceAll(path, "\r", "")
-			clientIP := strings.ReplaceAll(ctx.ClientIP(), "\n", "")
+			clientIP := strings.ReplaceAll(ctx.IP(), "\n", "")
 			clientIP = strings.ReplaceAll(clientIP, "\r", "")
 
-			logger.Info("[GIN]",
+			logger.Info("[FIBER]",
 				zap.Time("beginTime", start),
-				zap.Int("status", ctx.Writer.Status()),
+				zap.Int("status", ctx.Response().StatusCode()),
 				zap.Duration("latency", time.Since(start)),
 				zap.String("clientIP", clientIP),
-				zap.String("method", ctx.Request.Method),
+				zap.String("method", ctx.Method()),
 				zap.String("path", path))
 		}
+
+		return err
 	}
 }

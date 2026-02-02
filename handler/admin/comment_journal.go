@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/consts"
@@ -35,9 +35,9 @@ func NewJournalCommentHandler(journalCommentService service.JournalCommentServic
 	}
 }
 
-func (j *JournalCommentHandler) ListJournalComment(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) ListJournalComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentQuery param.CommentQuery
-	err := ctx.ShouldBindWith(&commentQuery, binding.CustomFormBinding)
+	err := binding.CustomFormBinding.Bind(ctx.Request(), &commentQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
@@ -55,7 +55,7 @@ func (j *JournalCommentHandler) ListJournalComment(ctx *gin.Context) (interface{
 	return dto.NewPage(commentDTOs, totalCount, commentQuery.Page), nil
 }
 
-func (j *JournalCommentHandler) ListJournalCommentLatest(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) ListJournalCommentLatest(ctx *fiber.Ctx) (interface{}, error) {
 	top, err := util.MustGetQueryInt32(ctx, "top")
 	if err != nil {
 		return nil, err
@@ -71,7 +71,7 @@ func (j *JournalCommentHandler) ListJournalCommentLatest(ctx *gin.Context) (inte
 	return j.JournalCommentAssembler.ConvertToWithJournal(ctx, comments)
 }
 
-func (j *JournalCommentHandler) ListJournalCommentAsTree(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) ListJournalCommentAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	journalID, err := util.ParamInt32(ctx, "journalID")
 	if err != nil {
 		return nil, err
@@ -98,7 +98,7 @@ func (j *JournalCommentHandler) ListJournalCommentAsTree(ctx *gin.Context) (inte
 	return dto.NewPage(commentVOs, totalCount, page), nil
 }
 
-func (j *JournalCommentHandler) ListJournalCommentWithParent(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) ListJournalCommentWithParent(ctx *fiber.Ctx) (interface{}, error) {
 	journalID, err := util.ParamInt32(ctx, "journalID")
 	if err != nil {
 		return nil, err
@@ -131,9 +131,9 @@ func (j *JournalCommentHandler) ListJournalCommentWithParent(ctx *gin.Context) (
 	return dto.NewPage(commentsWithParent, totalCount, page), nil
 }
 
-func (j *JournalCommentHandler) CreateJournalComment(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) CreateJournalComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentParam *param.AdminComment
-	err := ctx.ShouldBindJSON(&commentParam)
+	err := ctx.BodyParser(&commentParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -166,7 +166,7 @@ func (j *JournalCommentHandler) CreateJournalComment(ctx *gin.Context) (interfac
 	return j.JournalCommentAssembler.ConvertToDTO(ctx, comment)
 }
 
-func (j *JournalCommentHandler) UpdateJournalCommentStatus(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) UpdateJournalCommentStatus(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
@@ -182,13 +182,13 @@ func (j *JournalCommentHandler) UpdateJournalCommentStatus(ctx *gin.Context) (in
 	return j.JournalCommentService.UpdateStatus(ctx, commentID, status)
 }
 
-func (j *JournalCommentHandler) UpdateJournalComment(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) UpdateJournalComment(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
 	}
 	var commentParam *param.Comment
-	err = ctx.ShouldBindJSON(&commentParam)
+	err = ctx.BodyParser(&commentParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -209,14 +209,14 @@ func (j *JournalCommentHandler) UpdateJournalComment(ctx *gin.Context) (interfac
 	return j.JournalCommentAssembler.ConvertToDTO(ctx, comment)
 }
 
-func (j *JournalCommentHandler) UpdateJournalStatusBatch(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) UpdateJournalStatusBatch(ctx *fiber.Ctx) (interface{}, error) {
 	status, err := util.ParamInt32(ctx, "status")
 	if err != nil {
 		return nil, err
 	}
 
 	ids := make([]int32, 0)
-	err = ctx.ShouldBindJSON(&ids)
+	err = ctx.BodyParser(&ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}
@@ -227,7 +227,7 @@ func (j *JournalCommentHandler) UpdateJournalStatusBatch(ctx *gin.Context) (inte
 	return j.JournalCommentAssembler.ConvertToDTOList(ctx, comments)
 }
 
-func (j *JournalCommentHandler) DeleteJournalComment(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) DeleteJournalComment(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
@@ -235,9 +235,9 @@ func (j *JournalCommentHandler) DeleteJournalComment(ctx *gin.Context) (interfac
 	return nil, j.JournalCommentService.Delete(ctx, commentID)
 }
 
-func (j *JournalCommentHandler) DeleteJournalCommentBatch(ctx *gin.Context) (interface{}, error) {
+func (j *JournalCommentHandler) DeleteJournalCommentBatch(ctx *fiber.Ctx) (interface{}, error) {
 	ids := make([]int32, 0)
-	err := ctx.ShouldBindJSON(&ids)
+	err := ctx.BodyParser(&ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}

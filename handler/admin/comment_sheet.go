@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/consts"
@@ -49,9 +49,9 @@ func NewSheetCommentHandler(
 	}
 }
 
-func (s *SheetCommentHandler) ListSheetComment(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentQuery param.CommentQuery
-	err := ctx.ShouldBindWith(&commentQuery, binding.CustomFormBinding)
+	err := binding.CustomFormBinding.Bind(ctx.Request(), &commentQuery)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
@@ -69,7 +69,7 @@ func (s *SheetCommentHandler) ListSheetComment(ctx *gin.Context) (interface{}, e
 	return dto.NewPage(commentDTOs, totalCount, commentQuery.Page), nil
 }
 
-func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *fiber.Ctx) (interface{}, error) {
 	top, err := util.MustGetQueryInt32(ctx, "top")
 	if err != nil {
 		return nil, err
@@ -85,7 +85,7 @@ func (s *SheetCommentHandler) ListSheetCommentLatest(ctx *gin.Context) (interfac
 	return s.ConvertToWithSheet(ctx, comments)
 }
 
-func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *fiber.Ctx) (interface{}, error) {
 	postID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (s *SheetCommentHandler) ListSheetCommentAsTree(ctx *gin.Context) (interfac
 	return dto.NewPage(commentVOs, totalCount, page), nil
 }
 
-func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *fiber.Ctx) (interface{}, error) {
 	postID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -143,9 +143,9 @@ func (s *SheetCommentHandler) ListSheetCommentWithParent(ctx *gin.Context) (inte
 	return dto.NewPage(commentsWithParent, totalCount, page), nil
 }
 
-func (s *SheetCommentHandler) CreateSheetComment(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) CreateSheetComment(ctx *fiber.Ctx) (interface{}, error) {
 	var commentParam *param.AdminComment
-	err := ctx.ShouldBindJSON(&commentParam)
+	err := ctx.BodyParser(&commentParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -178,7 +178,7 @@ func (s *SheetCommentHandler) CreateSheetComment(ctx *gin.Context) (interface{},
 	return s.SheetCommentAssembler.ConvertToDTO(ctx, comment)
 }
 
-func (s *SheetCommentHandler) UpdateSheetCommentStatus(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) UpdateSheetCommentStatus(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
@@ -194,14 +194,14 @@ func (s *SheetCommentHandler) UpdateSheetCommentStatus(ctx *gin.Context) (interf
 	return s.SheetCommentService.UpdateStatus(ctx, commentID, status)
 }
 
-func (s *SheetCommentHandler) UpdateSheetCommentStatusBatch(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) UpdateSheetCommentStatusBatch(ctx *fiber.Ctx) (interface{}, error) {
 	status, err := util.ParamInt32(ctx, "status")
 	if err != nil {
 		return nil, err
 	}
 
 	ids := make([]int32, 0)
-	err = ctx.ShouldBindJSON(&ids)
+	err = ctx.BodyParser(&ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}
@@ -212,7 +212,7 @@ func (s *SheetCommentHandler) UpdateSheetCommentStatusBatch(ctx *gin.Context) (i
 	return s.SheetCommentAssembler.ConvertToDTOList(ctx, comments)
 }
 
-func (s *SheetCommentHandler) DeleteSheetComment(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) DeleteSheetComment(ctx *fiber.Ctx) (interface{}, error) {
 	commentID, err := util.ParamInt32(ctx, "commentID")
 	if err != nil {
 		return nil, err
@@ -220,9 +220,9 @@ func (s *SheetCommentHandler) DeleteSheetComment(ctx *gin.Context) (interface{},
 	return nil, s.SheetCommentService.Delete(ctx, commentID)
 }
 
-func (s *SheetCommentHandler) DeleteSheetCommentBatch(ctx *gin.Context) (interface{}, error) {
+func (s *SheetCommentHandler) DeleteSheetCommentBatch(ctx *fiber.Ctx) (interface{}, error) {
 	ids := make([]int32, 0)
-	err := ctx.ShouldBindJSON(&ids)
+	err := ctx.BodyParser(&ids)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("post ids error")
 	}

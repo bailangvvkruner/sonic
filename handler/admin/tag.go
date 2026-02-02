@@ -3,7 +3,7 @@ package admin
 import (
 	"errors"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/handler/trans"
@@ -25,9 +25,9 @@ func NewTagHandler(postTagService service.PostTagService, tagService service.Tag
 	}
 }
 
-func (t *TagHandler) ListTags(ctx *gin.Context) (interface{}, error) {
+func (t *TagHandler) ListTags(ctx *fiber.Ctx) (interface{}, error) {
 	sort := param.Sort{}
-	err := ctx.ShouldBindQuery(&sort)
+	err := ctx.QueryParser(&sort)
 	if err != nil {
 		return nil, xerr.WithMsg(err, "sort parameter error").WithStatus(xerr.StatusBadRequest)
 	}
@@ -45,7 +45,7 @@ func (t *TagHandler) ListTags(ctx *gin.Context) (interface{}, error) {
 	return t.TagService.ConvertToDTOs(ctx, tags)
 }
 
-func (t *TagHandler) GetTagByID(ctx *gin.Context) (interface{}, error) {
+func (t *TagHandler) GetTagByID(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
@@ -57,9 +57,9 @@ func (t *TagHandler) GetTagByID(ctx *gin.Context) (interface{}, error) {
 	return t.TagService.ConvertToDTO(ctx, tag)
 }
 
-func (t *TagHandler) CreateTag(ctx *gin.Context) (interface{}, error) {
+func (t *TagHandler) CreateTag(ctx *fiber.Ctx) (interface{}, error) {
 	tagParam := &param.Tag{}
-	err := ctx.ShouldBindJSON(tagParam)
+	err := ctx.BodyParser(tagParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -74,13 +74,13 @@ func (t *TagHandler) CreateTag(ctx *gin.Context) (interface{}, error) {
 	return t.TagService.ConvertToDTO(ctx, tag)
 }
 
-func (t *TagHandler) UpdateTag(ctx *gin.Context) (interface{}, error) {
+func (t *TagHandler) UpdateTag(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err
 	}
 	tagParam := &param.Tag{}
-	err = ctx.ShouldBindJSON(tagParam)
+	err = ctx.BodyParser(tagParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -95,7 +95,7 @@ func (t *TagHandler) UpdateTag(ctx *gin.Context) (interface{}, error) {
 	return t.TagService.ConvertToDTO(ctx, tag)
 }
 
-func (t *TagHandler) DeleteTag(ctx *gin.Context) (interface{}, error) {
+func (t *TagHandler) DeleteTag(ctx *fiber.Ctx) (interface{}, error) {
 	id, err := util.ParamInt32(ctx, "id")
 	if err != nil {
 		return nil, err

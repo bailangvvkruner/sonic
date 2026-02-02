@@ -4,7 +4,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/go-sonic/sonic/consts"
@@ -31,7 +31,7 @@ func NewSheetHandler(sheetService service.SheetService, postService service.Post
 	}
 }
 
-func (s *SheetHandler) GetSheetByID(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) GetSheetByID(ctx *fiber.Ctx) (interface{}, error) {
 	sheetID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -43,13 +43,13 @@ func (s *SheetHandler) GetSheetByID(ctx *gin.Context) (interface{}, error) {
 	return s.SheetAssembler.ConvertToDetailVO(ctx, sheet)
 }
 
-func (s *SheetHandler) ListSheet(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) ListSheet(ctx *fiber.Ctx) (interface{}, error) {
 	type SheetParam struct {
 		param.Page
 		Sort string `json:"sort"`
 	}
 	var sheetParam SheetParam
-	err := ctx.ShouldBind(&sheetParam)
+	err := ctx.BodyParser(&sheetParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("Parameter error")
 	}
@@ -64,13 +64,13 @@ func (s *SheetHandler) ListSheet(ctx *gin.Context) (interface{}, error) {
 	return dto.NewPage(sheetVOs, totalCount, sheetParam.Page), nil
 }
 
-func (s *SheetHandler) IndependentSheets(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) IndependentSheets(ctx *fiber.Ctx) (interface{}, error) {
 	return s.SheetService.ListIndependentSheets(ctx)
 }
 
-func (s *SheetHandler) CreateSheet(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) CreateSheet(ctx *fiber.Ctx) (interface{}, error) {
 	var sheetParam param.Sheet
-	err := ctx.ShouldBindJSON(&sheetParam)
+	err := ctx.BodyParser(&sheetParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -89,9 +89,9 @@ func (s *SheetHandler) CreateSheet(ctx *gin.Context) (interface{}, error) {
 	return sheetDetailVO, nil
 }
 
-func (s *SheetHandler) UpdateSheet(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) UpdateSheet(ctx *fiber.Ctx) (interface{}, error) {
 	var sheetParam param.Sheet
-	err := ctx.ShouldBindJSON(&sheetParam)
+	err := ctx.BodyParser(&sheetParam)
 	if err != nil {
 		e := validator.ValidationErrors{}
 		if errors.As(err, &e) {
@@ -111,7 +111,7 @@ func (s *SheetHandler) UpdateSheet(ctx *gin.Context) (interface{}, error) {
 	return postDetailVO, nil
 }
 
-func (s *SheetHandler) UpdateSheetStatus(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) UpdateSheetStatus(ctx *fiber.Ctx) (interface{}, error) {
 	sheetID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -130,13 +130,13 @@ func (s *SheetHandler) UpdateSheetStatus(ctx *gin.Context) (interface{}, error) 
 	return s.SheetService.UpdateStatus(ctx, sheetID, status)
 }
 
-func (s *SheetHandler) UpdateSheetDraft(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) UpdateSheetDraft(ctx *fiber.Ctx) (interface{}, error) {
 	sheetID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
 	}
 	var postContentParam param.PostContent
-	err = ctx.ShouldBindJSON(&postContentParam)
+	err = ctx.BodyParser(&postContentParam)
 	if err != nil {
 		return nil, xerr.WithStatus(err, xerr.StatusBadRequest).WithMsg("content param error")
 	}
@@ -147,7 +147,7 @@ func (s *SheetHandler) UpdateSheetDraft(ctx *gin.Context) (interface{}, error) {
 	return s.SheetAssembler.ConvertToDetailDTO(ctx, post)
 }
 
-func (s *SheetHandler) DeleteSheet(ctx *gin.Context) (interface{}, error) {
+func (s *SheetHandler) DeleteSheet(ctx *fiber.Ctx) (interface{}, error) {
 	sheetID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		return nil, err
@@ -155,19 +155,17 @@ func (s *SheetHandler) DeleteSheet(ctx *gin.Context) (interface{}, error) {
 	return nil, s.SheetService.Delete(ctx, sheetID)
 }
 
-func (s *SheetHandler) PreviewSheet(ctx *gin.Context) {
+func (s *SheetHandler) PreviewSheet(ctx *fiber.Ctx) error {
 	sheetID, err := util.ParamInt32(ctx, "sheetID")
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		_ = ctx.Error(err)
-		return
+		return err
 	}
 
 	previewPath, err := s.SheetService.Preview(ctx, sheetID)
 	if err != nil {
 		ctx.Status(http.StatusInternalServerError)
-		_ = ctx.Error(err)
-		return
+		return err
 	}
-	ctx.String(http.StatusOK, previewPath)
+	return ctx.SendString(previewPath)
 }
